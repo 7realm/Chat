@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="run" name="Create Runnable Jar for Project server">
+	<target name="create_server_jar" description="Creates server jar">
+		<jar destfile="./target/server.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="my.chat.server.Server" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="./bin" />
+			<fileset dir="../commons/bin" />
+			<fileset dir="../network/bin" />
+		</jar>
+	</target>
+
+	<target name="run" depends="create_server_jar">
+		<java jar="./target/server.jar" fork="true" failonerror="true" maxmemory="128m"/>
+	</target>
+
+</project>
