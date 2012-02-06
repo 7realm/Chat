@@ -3,6 +3,8 @@ package my.chat.messages;
 import my.chat.network.Message;
 
 public class ChatMessage extends Message {
+	private static final long serialVersionUID = 2790989669052558913L;
+	
 	private String username;
 	private String message;
 	
@@ -23,5 +25,4 @@ public class ChatMessage extends Message {
 	public void setMessage(String message) {
 		this.message = message;
 	}
-
 }
