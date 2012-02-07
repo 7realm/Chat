@@ -4,11 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import my.chat.commands.ChatCommand;
 import my.chat.exceptions.ChatIOException;
-import my.chat.messages.ChatMessage;
 import my.chat.network.ClientConnection;
-import my.chat.network.Message;
-import my.chat.network.OnMessageListener;
+import my.chat.network.Command;
+import my.chat.network.OnCommandListener;
 
 public class ConsoleClient {
 	private static ClientConnection clientConnection;
@@ -25,12 +25,12 @@ public class ConsoleClient {
 
 				if (line.equalsIgnoreCase("connect")) {
 					clientConnection = new ClientConnection("localhost", 8844);
-					clientConnection.setOnMessagelistener(new OnMessageListener() {
+					clientConnection.setOnCommandlistener(new OnCommandListener() {
 						@Override
-						public void onMessage(ClientConnection connection, Message message) throws ChatIOException {
-							if (message instanceof ChatMessage) {
-								ChatMessage chatMessage = (ChatMessage) message;
-								System.out.println(">>> " + chatMessage.getUsername() + ": " + chatMessage.getMessage());
+						public void onCommand(ClientConnection connection, Command command) throws ChatIOException {
+							if (command instanceof ChatCommand) {
+								ChatCommand chatCommand = (ChatCommand) command;
+								System.out.println(">>> " + chatCommand.getUsername() + ": " + chatCommand.getMessage());
 							}
 
 						}
@@ -39,8 +39,8 @@ public class ConsoleClient {
 				} else if (line.startsWith("send")) {
 					String[] parts = line.split(" ");
 
-					Message chatMessage = new ChatMessage("me", parts[1]);
-					clientConnection.sendMessage(chatMessage);
+					Command chatCommand = new ChatCommand("me", parts[1]);
+					clientConnection.sendCommand(chatCommand);
 				} else if (line.equalsIgnoreCase("close")) {
 					clientConnection.stop();
 				} else {

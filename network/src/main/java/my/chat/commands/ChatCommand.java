@@ -1,14 +1,14 @@
-package my.chat.messages;
+package my.chat.commands;
 
-import my.chat.network.Message;
+import my.chat.network.Command;
 
-public class ChatMessage extends Message {
+public class ChatCommand extends Command {
 	private static final long serialVersionUID = 2790989669052558913L;
 	
 	private String username;
 	private String message;
 	
-	public ChatMessage(String username, String message) {
+	public ChatCommand(String username, String message) {
 		super();
 		this.username = username;
 		this.message = message;
@@ -24,5 +24,10 @@ public class ChatMessage extends Message {
 	}
 	public void setMessage(String message) {
 		this.message = message;
+	}
+	
+	@Override
+	public String toString() {
+		return "Chat command. " + username + ": " + message;
 	}
 }

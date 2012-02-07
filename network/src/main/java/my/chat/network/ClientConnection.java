@@ -13,7 +13,7 @@ import static my.chat.commons.ArgumentHelper.checkPositive;
 import static my.chat.commons.ArgumentHelper.checkState;
 
 /**
- * Connection class that wraps socket functions. Has an internal thread that will read incoming message.
+ * Connection class that wraps socket functions. Has an internal thread that will read incoming command.
  * <p>
  * It can be created from existing socket, or can be connected to remote host.
  * <p>
@@ -29,7 +29,7 @@ public class ClientConnection implements Runnable {
 	private ConnectionState state = ConnectionState.CREATED;
 	private Exception occurredException;
 
-	private OnMessageListener messagelistener;
+	private OnCommandListener commandlistener;
 	private OnClientCloseListener closeListener;
 	private ExceptionHandler handler;
 
@@ -64,7 +64,7 @@ public class ClientConnection implements Runnable {
 	}
 
 	/**
-	 * Start listening to messages.
+	 * Start listening to commands.
 	 */
 	public void start() {
 		checkState(state, ConnectionState.CREATED);
@@ -76,7 +76,7 @@ public class ClientConnection implements Runnable {
 	}
 
 	/**
-	 * Stop listening to messages, allows multiple call.
+	 * Stop listening to commands, allows multiple call.
 	 */
 	public void stop() {
 		checkState(state, ConnectionState.STARTED, ConnectionState.STOP_REQUESED);
@@ -94,10 +94,10 @@ public class ClientConnection implements Runnable {
 			while (state != ConnectionState.STOP_REQUESED) {
 				try {
 					// TODO interrupt
-					Message message = (Message) in.readObject();
+					Command command = (Command) in.readObject();
 
-					if (messagelistener != null) {
-						messagelistener.onMessage(this, message);
+					if (commandlistener != null) {
+						commandlistener.onCommand(this, command);
 					}
 				} catch (IOException e) {
 					// TODO only log
@@ -139,17 +139,17 @@ public class ClientConnection implements Runnable {
 	}
 
 	/**
-	 * Send message over network. If message sending failed, connection will be closed.
+	 * Send command over network. If command sending failed, connection will be closed.
 	 * 
-	 * @param message the message to send
+	 * @param command the command to send
 	 * @throws ChatIOException if I/O error occurred while sending
 	 */
-	public void sendMessage(Message message) throws ChatIOException {
+	public void sendCommand(Command command) throws ChatIOException {
 		checkState(state, ConnectionState.STARTED);
 
 		try {
 			ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-			outputStream.writeObject(message);
+			outputStream.writeObject(command);
 			outputStream.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -162,12 +162,12 @@ public class ClientConnection implements Runnable {
 			}
 
 			// anyway we throw exception to show that send failed
-			throw new ChatIOException("Failed to send Message.", e);
+			throw new ChatIOException("Failed to send Command.", e);
 		}
 	}
 
-	public void setOnMessagelistener(OnMessageListener messagelistener) {
-		this.messagelistener = messagelistener;
+	public void setOnCommandlistener(OnCommandListener commandlistener) {
+		this.commandlistener = commandlistener;
 	}
 
 	public void setOnCloseListener(OnClientCloseListener closeListener) {

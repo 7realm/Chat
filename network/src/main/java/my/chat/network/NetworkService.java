@@ -3,12 +3,12 @@ package my.chat.network;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
 
-public class NetworkService implements OnConnectionListener, OnMessageListener, OnClientCloseListener, OnServerCloseListener,
+public class NetworkService implements OnConnectionListener, OnCommandListener, OnClientCloseListener, OnServerCloseListener,
 	ExceptionHandler {
 	
 	private final ServerConnection serverConnection;
 	
-	private OnMessageListener messageListener;
+	private OnCommandListener commandListener;
 	private OnConnectionListener connectionListener;
 	private OnClientCloseListener clientCloseListener;
 	private OnServerCloseListener serverCloseListener;
@@ -28,13 +28,13 @@ public class NetworkService implements OnConnectionListener, OnMessageListener, 
 		serverConnection.stop();
 	}
 
-	public void sendMessage(ClientConnection connection, Message message) throws ChatIOException {
-		connection.sendMessage(message);
+	public void sendCommand(ClientConnection connection, Command command) throws ChatIOException {
+		connection.sendCommand(command);
 	}
 
 	@Override
 	public void onConnection(ClientConnection connection) throws ChatException {
-		connection.setOnMessagelistener(this);
+		connection.setOnCommandlistener(this);
 		connection.setOnCloseListener(this);
 		connection.start();
 
@@ -44,9 +44,9 @@ public class NetworkService implements OnConnectionListener, OnMessageListener, 
 	}
 	
 	@Override
-	public void onMessage(ClientConnection connection, Message message) throws ChatException {
-		if (messageListener != null) {
-			messageListener.onMessage(connection, message);
+	public void onCommand(ClientConnection connection, Command command) throws ChatException {
+		if (commandListener != null) {
+			commandListener.onCommand(connection, command);
 		}
 
 	}
@@ -71,8 +71,8 @@ public class NetworkService implements OnConnectionListener, OnMessageListener, 
 		return false;
 	}
 	
-	public void setOnMessageListener(OnMessageListener listener) {
-		this.messageListener = listener;
+	public void setOnCommandListener(OnCommandListener listener) {
+		this.commandListener = listener;
 	}
 
 	public void setOnConnectionListener(OnConnectionListener listener) {

@@ -1,19 +1,19 @@
 package my.chat.server;
 
+import my.chat.commands.ChatCommand;
 import my.chat.exceptions.ChatIOException;
-import my.chat.messages.ChatMessage;
 import my.chat.network.ClientConnection;
-import my.chat.network.Message;
+import my.chat.network.Command;
 import my.chat.network.NetworkService;
+import my.chat.network.OnCommandListener;
 import my.chat.network.OnConnectionListener;
-import my.chat.network.OnMessageListener;
 
-public class Server implements OnMessageListener, OnConnectionListener {
+public class Server implements OnCommandListener, OnConnectionListener {
 	private final NetworkService networkService;
 
 	public Server() throws ChatIOException {
 		networkService = new NetworkService();
-		networkService.setOnMessageListener(this);
+		networkService.setOnCommandListener(this);
 		networkService.setOnConnectionListener(this);
 	}
 
@@ -22,14 +22,14 @@ public class Server implements OnMessageListener, OnConnectionListener {
 	}
 
 	@Override
-	public void onMessage(ClientConnection connection, Message message) throws ChatIOException {
-		System.out.println("Received message: " + message);
+	public void onCommand(ClientConnection connection, Command command) throws ChatIOException {
+		System.out.println("Received command: " + command);
 		
-		if (message instanceof ChatMessage) {
-			ChatMessage chatMessage = (ChatMessage) message;
+		if (command instanceof ChatCommand) {
+			ChatCommand chatCommand = (ChatCommand) command;
 
-			networkService.sendMessage(connection, new ChatMessage("server", "Hello '" + chatMessage.getUsername() + "'."));
-			networkService.sendMessage(connection, new ChatMessage("server", "reply to: " + chatMessage.getMessage()));
+			networkService.sendCommand(connection, new ChatCommand("server", "Hello '" + chatCommand.getUsername() + "'."));
+			networkService.sendCommand(connection, new ChatCommand("server", "reply to: " + chatCommand.getMessage()));
 		}
 	}
 
@@ -37,7 +37,7 @@ public class Server implements OnMessageListener, OnConnectionListener {
 	public void onConnection(ClientConnection connection) throws ChatIOException {
 		System.out.println("Received connection: " + connection);
 		
-		networkService.sendMessage(connection, new ChatMessage("server", "Welcome to Chat!"));
+		networkService.sendCommand(connection, new ChatCommand("server", "Welcome to Chat!"));
 	}
 
 	public static void main(String[] args) throws ChatIOException {
