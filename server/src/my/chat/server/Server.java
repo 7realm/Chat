@@ -3,12 +3,12 @@ package my.chat.server;
 import my.chat.exceptions.ChatIOException;
 import my.chat.messages.ChatMessage;
 import my.chat.network.ClientConnection;
-import my.chat.network.ClientConnection.MessageListener;
 import my.chat.network.Message;
 import my.chat.network.NetworkService;
-import my.chat.network.ServerConnection.ConnectionListener;
+import my.chat.network.OnConnectionListener;
+import my.chat.network.OnMessageListener;
 
-public class Server implements MessageListener, ConnectionListener {
+public class Server implements OnMessageListener, OnConnectionListener {
 	private final NetworkService networkService;
 
 	public Server() throws ChatIOException {

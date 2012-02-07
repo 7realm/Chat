@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import my.chat.exceptions.ChatException;
 
+@Deprecated
 public abstract class CustomThread implements Runnable {
 	private final Thread thread;
 	private final AtomicBoolean isStopped;
@@ -24,17 +25,24 @@ public abstract class CustomThread implements Runnable {
 	@Override
 	public void run() {
 		isStopped.set(false);
-		try {
-			while (!isStopped.get()) {
-				execute();
-			}
-		} catch (ChatException e) {
-			handleException(e);
-			isStopped.set(true);
-		}
-	}
 
-	protected abstract void handleException(ChatException e);
+		while (!isStopped.get()) {
+			try {
+				execute();
+			} catch (ChatException e) {
+				// try to handle exception
+				if (!handleException(e)) {
+					break;
+				}
+			}
+		}
+
+		isStopped.set(true);
+	}
 	
+	
+
+	protected abstract boolean handleException(ChatException e);
+
 	protected abstract void execute() throws ChatException;
 }

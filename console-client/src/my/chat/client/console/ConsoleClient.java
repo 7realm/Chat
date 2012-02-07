@@ -7,8 +7,8 @@ import java.io.InputStreamReader;
 import my.chat.exceptions.ChatIOException;
 import my.chat.messages.ChatMessage;
 import my.chat.network.ClientConnection;
-import my.chat.network.ClientConnection.MessageListener;
 import my.chat.network.Message;
+import my.chat.network.OnMessageListener;
 
 public class ConsoleClient {
 	private static ClientConnection clientConnection;
@@ -25,7 +25,7 @@ public class ConsoleClient {
 
 				if (line.equalsIgnoreCase("connect")) {
 					clientConnection = new ClientConnection("localhost", 8844);
-					clientConnection.setOnMessageListener(new MessageListener() {
+					clientConnection.setOnMessagelistener(new OnMessageListener() {
 						@Override
 						public void onMessage(ClientConnection connection, Message message) throws ChatIOException {
 							if (message instanceof ChatMessage) {
@@ -42,7 +42,7 @@ public class ConsoleClient {
 					Message chatMessage = new ChatMessage("me", parts[1]);
 					clientConnection.sendMessage(chatMessage);
 				} else if (line.equalsIgnoreCase("close")) {
-					clientConnection.close();
+					clientConnection.stop();
 				} else {
 					System.out.println("Incorrect command.");
 				}
