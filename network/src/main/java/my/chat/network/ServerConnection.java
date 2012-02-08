@@ -78,12 +78,14 @@ public class ServerConnection implements Runnable {
 				occurredException = e;
 			}
 
-			// try to handle exception
-			if (handler != null && handler.canHandle(occurredException)) {
-				// exception is handled
-				occurredException = null;
-			} else {
-				break;
+			if (occurredException != null) {
+				// try to handle exception
+				if (handler != null && handler.canHandle(occurredException)) {
+					// exception is handled
+					occurredException = null;
+				} else {
+					break;
+				}
 			}
 		}
 
@@ -116,7 +118,7 @@ public class ServerConnection implements Runnable {
 	public void setExceptionHandler(ExceptionHandler handler) {
 		this.handler = handler;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Server connection. State: " + state + ".";

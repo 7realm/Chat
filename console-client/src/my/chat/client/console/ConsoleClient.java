@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import my.chat.commands.ChatCommand;
+import my.chat.commands.LoginCommand;
 import my.chat.exceptions.ChatIOException;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
@@ -23,7 +24,7 @@ public class ConsoleClient {
 					break;
 				}
 
-				if (line.equalsIgnoreCase("connect")) {
+				if (line.startsWith("login")) {
 					clientConnection = new ClientConnection("localhost", 8844);
 					clientConnection.setOnCommandlistener(new OnCommandListener() {
 						@Override
@@ -36,6 +37,11 @@ public class ConsoleClient {
 						}
 					});
 					clientConnection.start();
+					
+					String[] parts = line.split(" ");
+					Command loginCommand = new LoginCommand(parts[1], parts[2]);
+					
+					clientConnection.sendCommand(loginCommand);
 				} else if (line.startsWith("send")) {
 					String[] parts = line.split(" ");
 

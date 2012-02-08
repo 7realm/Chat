@@ -2,6 +2,8 @@ package my.chat.commons;
 
 import java.util.Arrays;
 
+import my.chat.exceptions.ChatConfigurationException;
+
 /**
  * Helper class for argument checking.
  * 
@@ -43,5 +45,11 @@ public final class ArgumentHelper {
 		// if not found
 		throw new IllegalStateException("Instance is in state '" + value + "', but one of " + Arrays.toString(expectedValues)
 			+ " expected.");
+	}
+
+	public static void checkInit(String fieldName, Object fieldValue) {
+		if (fieldValue == null) {
+			throw new ChatConfigurationException("Field '" + fieldName + "' is not set.");
+		}
 	}
 }

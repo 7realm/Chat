@@ -1,0 +1,32 @@
+<project name="chat.db_client" default="" basedir=".">
+	
+	<property name="jar.name" value="db_client.jar" />
+	<property file="../chat.properties" />
+
+	<target name="clean">
+		<delete failonerror="no" includeemptydirs="true">
+			<fileset dir="${build}/classes" includes="**/*" />
+		</delete>
+	</target>
+
+
+	<target name="compile">
+		<mkdir dir="${build}/classes" />
+		<javac srcdir="${src}" destdir="${build}/classes">
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="../${ear.name}/content/lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="build" depends="clean, compile">
+		<jar destfile="../${ear.name}/content/${jar.name}">
+			<fileset dir="${build}/classes" />
+		</jar>
+	</target>
+</project>

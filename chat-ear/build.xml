@@ -1,0 +1,32 @@
+<project name="chat.ear" default="" basedir=".">
+
+	<property file="../chat.properties" />
+
+	<target name="clean">
+		<delete failonerror="no" includeemptydirs="true">
+			<fileset dir="content/" includes="**/*.jar" />
+		</delete>
+	</target>
+
+	<target name="build" depends="clean">
+		<subant>
+			<fileset dir="../commons/" includes="build.xml" />
+			<fileset dir="../model/" includes="build.xml" />
+			<fileset dir="../network/" includes="build.xml" />
+			<fileset dir="../db_client/" includes="build.xml" />
+			<fileset dir="../db/" includes="build.xml" />
+			<target name="build" />
+		</subant>
+	</target>
+
+	<target name="make-ear" depends="build">
+		<jar destfile="${ear.name}.ear">
+			<fileset dir="content" />
+		</jar>
+	</target>
+
+	<target name="delpoy" depends="make-ear">
+		<copy tofile="${jboss.deploy.dir}/${ear.name}.ear" file="${ear.name}.ear" />
+		<!-- <copy tofile="${jboss.deploy.dir}/mysql-ds.xml" file="mysql-ds.xml" /> -->
+	</target>
+</project>

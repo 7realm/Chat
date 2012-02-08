@@ -26,12 +26,15 @@ import static my.chat.commons.ArgumentHelper.checkState;
 public class ClientConnection implements Runnable {
 	private final Thread thread = new Thread(this);
 	private final Socket socket;
+	private Object tag;
 	private ConnectionState state = ConnectionState.CREATED;
 	private Exception occurredException;
 
 	private OnCommandListener commandlistener;
 	private OnClientCloseListener closeListener;
 	private ExceptionHandler handler;
+	private ObjectOutputStream out;
+	private ObjectInputStream in;
 
 	/**
 	 * Create connection form incoming socket.
@@ -89,8 +92,10 @@ public class ClientConnection implements Runnable {
 		checkState(state, ConnectionState.STARTED);
 
 		try {
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-
+			// create streams for socket
+			out = new ObjectOutputStream(socket.getOutputStream());
+			in = new ObjectInputStream(socket.getInputStream());
+			
 			while (state != ConnectionState.STOP_REQUESED) {
 				try {
 					// TODO interrupt
@@ -111,14 +116,21 @@ public class ClientConnection implements Runnable {
 					// TODO only log
 					e.printStackTrace();
 					occurredException = e;
+				} catch (RuntimeException e) {
+					// need this, because unexpected runtime exception can occur
+					// TODO only log
+					e.printStackTrace();
+					occurredException = e;
 				}
 
-				// try to handle exception
-				if (handler != null && handler.canHandle(occurredException)) {
-					// exception is handled
-					occurredException = null;
-				} else {
-					break;
+				if (occurredException != null) {
+					// try to handle exception
+					if (handler != null && handler.canHandle(occurredException)) {
+						// exception is handled
+						occurredException = null;
+					} else {
+						break;
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -127,7 +139,7 @@ public class ClientConnection implements Runnable {
 
 			// try to handle just in case, but this is not recoverable error
 			occurredException = e;
-			if (handler == null) {
+			if (handler != null) {
 				handler.canHandle(e);
 			}
 		}
@@ -148,9 +160,8 @@ public class ClientConnection implements Runnable {
 		checkState(state, ConnectionState.STARTED);
 
 		try {
-			ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-			outputStream.writeObject(command);
-			outputStream.flush();
+			out.writeObject(command);
+			out.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -167,11 +178,26 @@ public class ClientConnection implements Runnable {
 	}
 
 	public void setOnCommandlistener(OnCommandListener commandlistener) {
+		// TODO make thread safe
 		this.commandlistener = commandlistener;
 	}
 
 	public void setOnCloseListener(OnClientCloseListener closeListener) {
 		this.closeListener = closeListener;
+	}
+
+	/**
+	 * @return the tag
+	 */
+	public Object getTag() {
+		return tag;
+	}
+
+	/**
+	 * @param tag the tag to set
+	 */
+	public void setTag(Object tag) {
+		this.tag = tag;
 	}
 
 	public void setExceptionHandler(ExceptionHandler handler) {

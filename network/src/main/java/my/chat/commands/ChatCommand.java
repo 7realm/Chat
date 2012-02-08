@@ -28,6 +28,6 @@ public class ChatCommand extends Command {
 	
 	@Override
 	public String toString() {
-		return "Chat command. " + username + ": " + message;
+		return "Chat Command. " + username + ": " + message;
 	}
 }
