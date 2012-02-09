@@ -33,7 +33,10 @@ public class ClientConnection implements Runnable {
 	private OnCommandListener commandlistener;
 	private OnClientCloseListener closeListener;
 	private ExceptionHandler handler;
+	
+	/** Output socket stream. It is created in {@link ClientConnection#start()} method. */
 	private ObjectOutputStream out;
+	/** Input socket stream. It is created in {@link ClientConnection#start()} method. */
 	private ObjectInputStream in;
 
 	/**
@@ -72,6 +75,21 @@ public class ClientConnection implements Runnable {
 	public void start() {
 		checkState(state, ConnectionState.CREATED);
 
+		try {
+			// create streams for socket
+			out = new ObjectOutputStream(socket.getOutputStream());
+			in = new ObjectInputStream(socket.getInputStream());
+		} catch (IOException e) {
+			// exception occurred while opening input stream
+			e.printStackTrace();
+
+			// try to handle just in case, but this is not recoverable error
+			occurredException = e;
+			if (handler != null) {
+				handler.canHandle(e);
+			}
+		}
+
 		// start inner thread
 		thread.start();
 
@@ -91,56 +109,41 @@ public class ClientConnection implements Runnable {
 	public void run() {
 		checkState(state, ConnectionState.STARTED);
 
-		try {
-			// create streams for socket
-			out = new ObjectOutputStream(socket.getOutputStream());
-			in = new ObjectInputStream(socket.getInputStream());
-			
-			while (state != ConnectionState.STOP_REQUESED) {
-				try {
-					// TODO interrupt
-					Command command = (Command) in.readObject();
+		while (state != ConnectionState.STOP_REQUESED) {
+			try {
+				// TODO interrupt
+				Command command = (Command) in.readObject();
 
-					if (commandlistener != null) {
-						commandlistener.onCommand(this, command);
-					}
-				} catch (IOException e) {
-					// TODO only log
-					e.printStackTrace();
-					occurredException = e;
-				} catch (ClassNotFoundException e) {
-					// TODO only log
-					e.printStackTrace();
-					occurredException = e;
-				} catch (ChatException e) {
-					// TODO only log
-					e.printStackTrace();
-					occurredException = e;
-				} catch (RuntimeException e) {
-					// need this, because unexpected runtime exception can occur
-					// TODO only log
-					e.printStackTrace();
-					occurredException = e;
+				if (commandlistener != null) {
+					commandlistener.onCommand(this, command);
 				}
-
-				if (occurredException != null) {
-					// try to handle exception
-					if (handler != null && handler.canHandle(occurredException)) {
-						// exception is handled
-						occurredException = null;
-					} else {
-						break;
-					}
-				}
+			} catch (IOException e) {
+				// TODO only log
+				e.printStackTrace();
+				occurredException = e;
+			} catch (ClassNotFoundException e) {
+				// TODO only log
+				e.printStackTrace();
+				occurredException = e;
+			} catch (ChatException e) {
+				// TODO only log
+				e.printStackTrace();
+				occurredException = e;
+			} catch (RuntimeException e) {
+				// need this, because unexpected runtime exception can occur
+				// TODO only log
+				e.printStackTrace();
+				occurredException = e;
 			}
-		} catch (IOException e) {
-			// exception occurred while opening input stream
-			e.printStackTrace();
 
-			// try to handle just in case, but this is not recoverable error
-			occurredException = e;
-			if (handler != null) {
-				handler.canHandle(e);
+			if (occurredException != null) {
+				// try to handle exception
+				if (handler != null && handler.canHandle(occurredException)) {
+					// exception is handled
+					occurredException = null;
+				} else {
+					break;
+				}
 			}
 		}
 

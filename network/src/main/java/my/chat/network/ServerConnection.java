@@ -23,6 +23,7 @@ public class ServerConnection implements Runnable {
 		checkPositive("port", port);
 
 		try {
+			// open server socket
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

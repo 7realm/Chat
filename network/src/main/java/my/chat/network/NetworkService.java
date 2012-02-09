@@ -34,10 +34,13 @@ public class NetworkService implements OnConnectionListener, OnCommandListener, 
 
 	@Override
 	public void onConnection(ClientConnection connection) throws ChatException {
+		// assign connection to self and start it
 		connection.setOnCommandlistener(this);
 		connection.setOnCloseListener(this);
+		connection.setExceptionHandler(this);
 		connection.start();
 
+		// notify about connection
 		if (connectionListener != null) {
 			connectionListener.onConnection(connection);
 		}

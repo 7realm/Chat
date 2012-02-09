@@ -7,8 +7,7 @@ package my.chat.exceptions;
  * @author taras.kovalchuk
  *
  */
-public class ChatConfigurationException extends RuntimeException {
-
+public class ChatConfigurationException extends ChatRuntimeException {
 	/**
 	 * 
 	 */
