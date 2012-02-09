@@ -44,6 +44,8 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
 				// check user name
 				User user = databaseService.login(loginCommand.getUsername(), loginCommand.getPassword());
 
+				
+				
 				// server should reassign connection to him
 				Server.getInstance().onConnection(connection, user);
 			} catch (ChatLoginException e) {

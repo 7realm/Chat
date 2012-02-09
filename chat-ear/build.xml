@@ -12,8 +12,9 @@
 		<subant>
 			<fileset dir="../commons/" includes="build.xml" />
 			<fileset dir="../entities/" includes="build.xml" />
-			<fileset dir="../model/" includes="build.xml" />
+			
 			<fileset dir="../network/" includes="build.xml" />
+			<fileset dir="../model/" includes="build.xml" />
 			<fileset dir="../db_client/" includes="build.xml" />
 			<fileset dir="../db/" includes="build.xml" />
 			<target name="build" />
