@@ -4,5 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.6.0_17"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Chat Common Dependencies"/>
 	<classpathentry kind="src" path="/commons"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/entities"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/network"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
