@@ -4,7 +4,9 @@ import my.chat.network.Command;
 
 
 public class LoginCommand extends Command {
-	private String username;
+    private static final long serialVersionUID = 6006445371777791815L;
+    
+    private String username;
 	private String password;
 	public LoginCommand(String username, String password) {
 		super();

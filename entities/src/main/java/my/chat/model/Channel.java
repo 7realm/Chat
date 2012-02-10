@@ -1,6 +1,7 @@
 package my.chat.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,6 +22,9 @@ public class Channel implements Serializable {
     /** The channel name. */
     private String name;
 
+    /** The channel type. */
+    private ChannelType channelType;
+
     /** The channel create date. */
     private Date createDate;
 
@@ -35,10 +39,14 @@ public class Channel implements Serializable {
      * @param name
      * @param createDate
      */
-    public Channel(long channelId, String name, Date createDate) {
+    public Channel(long channelId, String name, ChannelType channelType, Date createDate) {
         this.channelId = channelId;
         this.name = name;
+        this.channelType = channelType;
         this.createDate = createDate;
+        
+        users = new ArrayList<User>();
+        messages = new ArrayList<ChatMessage>();
     }
 
     /**
@@ -74,5 +82,16 @@ public class Channel implements Serializable {
      */
     public List<ChatMessage> getMessages() {
         return messages;
+    }
+
+    /**
+     * @return the channelType
+     */
+    public ChannelType getChannelType() {
+        return channelType;
+    }
+
+    public static enum ChannelType {
+        PUBLIC, PRIVATE, PASSWORD
     }
 }

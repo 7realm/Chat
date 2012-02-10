@@ -14,7 +14,7 @@ import my.chat.network.ExceptionHandler;
 import my.chat.network.OnClientCloseListener;
 import my.chat.network.OnCommandListener;
 import my.chat.network.OnConnectionListener;
-import my.chat.server.Server;
+import my.chat.server.CommandProcessor;
 
 /**
  * @author taras.kovalchuk
@@ -44,10 +44,8 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
 				// check user name
 				User user = databaseService.login(loginCommand.getUsername(), loginCommand.getPassword());
 
-				
-				
 				// server should reassign connection to him
-				Server.getInstance().onConnection(connection, user);
+				CommandProcessor.getInstance().acceptConnection(connection, user);
 			} catch (ChatLoginException e) {
 				e.printStackTrace();
 				System.out.println("Connection login attempt rejected.");
@@ -70,5 +68,4 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
 		// TODO Auto-generated method stub
 
 	}
-
 }
