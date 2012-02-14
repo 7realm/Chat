@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/commons"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/db_client"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/entities"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/parser"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -39,7 +39,7 @@ public class DatabaseService implements DatabaseServiceRemote, DatabaseServiceLo
 	}
 
 	@Override
-	public User login(String username, String password) throws ChatLoginException {
+	public User login(String username, String password) throws LoginChatException {
 		checkString("username", username);
 		checkString("password", password);
 
@@ -49,7 +49,7 @@ public class DatabaseService implements DatabaseServiceRemote, DatabaseServiceLo
 			return (User) query.getSingleResult();
 		} catch (PersistenceException e) {
 			// TODO: handle exception
-			throw new ChatLoginException("Failed to get user '" + username + "' from database.", e);
+			throw new LoginChatException("Failed to get user '" + username + "' from database.", e);
 		}
 	}
 }

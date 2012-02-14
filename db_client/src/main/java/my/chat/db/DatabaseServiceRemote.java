@@ -8,5 +8,5 @@ public interface DatabaseServiceRemote {
 	
 	User getUser(int id);
 	
-	User login(String username, String password) throws ChatLoginException;
+	User login(String username, String password) throws LoginChatException;
 }

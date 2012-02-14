@@ -12,9 +12,11 @@ import my.chat.commands.ChatCommand;
 import my.chat.commands.ConnectInfoCommand;
 import my.chat.commands.UserEnterCommand;
 import my.chat.commands.UserExitCommand;
+import my.chat.commands.UserJoinCommand;
 import my.chat.commands.UserLeaveCommand;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
+import my.chat.exceptions.ChatNotImplementedException;
 import my.chat.model.Channel;
 import my.chat.model.Channel.ChannelType;
 import my.chat.model.PrivateMessage;
@@ -72,7 +74,19 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     }
 
     protected void requestChannelEnter(Channel channel, User user) {
+        switch (channel.getType()) {
+        case PUBLIC:
+            addUserToChannel(channel, user);
+            break;
+        default:
+            throw new ChatNotImplementedException("Channel type " + channel.getType() + " is not implemented.");
+        }
+    }
+    
+    protected void addUserToChannel(Channel channel, User user) {
+        channel.getUsers().add(user);
         
+        sendCommandToChannel(channel, new UserJoinCommand(channel, user));
     }
 
     protected void removeUserFromChannel(Channel channel, User user) {

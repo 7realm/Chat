@@ -59,12 +59,11 @@ public class Server implements OnCommandListener, OnClientCloseListener, Excepti
 		
 		securityService = new SecurityService(databaseService);
 		
-		networkService = new NetworkService();
-		networkService.setOnCommandListener(securityService);
+		networkService = NetworkService.getInstance();
 		networkService.setOnConnectionListener(securityService);
 	}
 
-	public void start() {
+	public void start() throws ChatIOException {
 		networkService.start();
 	}
 

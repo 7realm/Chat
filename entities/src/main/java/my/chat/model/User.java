@@ -16,13 +16,14 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.ModelConfig;
+import my.chat.parser.ObjectData;
 
 /**
  * Data container for chat user.
  */
 @Entity
 @Table(name = "user")
+@ObjectData
 public class User implements ChatEntity {
     private static final long serialVersionUID = 1L;
 
@@ -41,16 +42,18 @@ public class User implements ChatEntity {
     private String password;
 
     /** The list of user's contacts. */
-    private List<User> contacts;
+    private List<User> contacts = new ArrayList<User>();
 
     /** List of user's statuses. */
-    private List<Status> statuses;
+    private List<Status> statuses= new ArrayList<Status>();
+    
+    public User(){
+        // empty
+    }
 
     public User(String username, String password) {
-        contacts = new ArrayList<User>();
-        statuses = new ArrayList<Status>();
-        
-        addStatus(ModelConfig.FIRST_STATUS);
+        this.username = username;
+        this.password = password;
     }
 
     public long getUserId() {

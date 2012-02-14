@@ -4,8 +4,8 @@
 package my.chat.security;
 
 import my.chat.commands.LoginCommand;
-import my.chat.db.ChatLoginException;
 import my.chat.db.DatabaseServiceRemote;
+import my.chat.db.LoginChatException;
 import my.chat.exceptions.ChatException;
 import my.chat.model.User;
 import my.chat.network.ClientConnection;
@@ -46,7 +46,7 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
 
 				// server should reassign connection to him
 				CommandProcessor.getInstance().acceptConnection(connection, user);
-			} catch (ChatLoginException e) {
+			} catch (LoginChatException e) {
 				e.printStackTrace();
 				System.out.println("Connection login attempt rejected.");
 				// stop connection

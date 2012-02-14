@@ -4,6 +4,8 @@ import my.chat.model.Channel;
 import my.chat.model.User;
 
 public class UserJoinCommand extends ChannelCommand {
+    private static final long serialVersionUID = 5749312504458260489L;
+    
     private User user;
 
     /**

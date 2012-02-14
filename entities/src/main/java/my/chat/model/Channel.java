@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import my.chat.parser.ObjectData;
+
 /**
  * Chat channel, it will contain users and messages.
  * <p>
@@ -12,6 +14,7 @@ import java.util.List;
  * 
  * @author 7realm
  */
+@ObjectData
 public class Channel implements Serializable {
     /** Serial version UID. */
     private static final long serialVersionUID = 7851489666306197186L;
@@ -23,30 +26,31 @@ public class Channel implements Serializable {
     private String name;
 
     /** The channel type. */
-    private ChannelType channelType;
+    private ChannelType type;
 
     /** The channel create date. */
     private Date createDate;
 
     /** The list of users, present in channel. */
-    private List<User> users;
+    private List<User> users = new ArrayList<User>();
 
     /** The list of messages, posted at channel. */
-    private List<ChatMessage> messages;
+    private List<ChatMessage> messages = new ArrayList<ChatMessage>();
+
+    public Channel() {
+        // empty default constructor
+    }
 
     /**
      * @param channelId
      * @param name
      * @param createDate
      */
-    public Channel(long channelId, String name, ChannelType channelType, Date createDate) {
+    public Channel(long channelId, String name, ChannelType type, Date createDate) {
         this.channelId = channelId;
         this.name = name;
-        this.channelType = channelType;
+        this.type = type;
         this.createDate = createDate;
-        
-        users = new ArrayList<User>();
-        messages = new ArrayList<ChatMessage>();
     }
 
     /**
@@ -85,10 +89,10 @@ public class Channel implements Serializable {
     }
 
     /**
-     * @return the channelType
+     * @return
      */
-    public ChannelType getChannelType() {
-        return channelType;
+    public ChannelType getType() {
+        return type;
     }
 
     public static enum ChannelType {

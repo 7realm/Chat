@@ -14,6 +14,7 @@ import my.chat.exceptions.ChatRuntimeException;
  * @author 7realm
  */
 public class InvalidMemeberException extends ChatRuntimeException {
+    private static final long serialVersionUID = 1573137778875054298L;
 
     public InvalidMemeberException(String message) {
         super(message);
