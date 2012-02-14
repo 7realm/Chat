@@ -4,12 +4,12 @@
 package my.chat.parser;
 
 import static my.chat.commons.ArgumentHelper.checkNotNull;
-import static my.chat.commons.ArgumentHelper.checkString;
 import static my.chat.commons.ArgumentHelper.close;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,9 +28,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import my.chat.exceptions.ConfigurationChatException;
-import my.chat.network.Command2;
-import my.chat.network.Command2.CommandData;
-import my.chat.network.Command2.CommandType;
+import my.chat.network.Command;
+import my.chat.network.Command.CommandData;
+import my.chat.network.Command.CommandType;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -47,13 +47,13 @@ import org.xml.sax.SAXException;
  * @author 7realm
  */
 public final class ParserService {
-
     private static final String NODE_LIST = "List";
     private static final String NODE_OBJECT = "Object";
     private static final String NODE_BOOL = "Boolean";
     private static final String NODE_LONG = "Long";
     private static final String NODE_INTEGER = "Integer";
     private static final String NODE_STRING = "String";
+    
     private static final ParserService INSTANCE = new ParserService();
     private Transformer transformer;
     private DocumentBuilder documentBuilder;
@@ -84,7 +84,7 @@ public final class ParserService {
         // TODO scan files for rules
     }
 
-    public String marshall(Command2 command) throws ParserChatException {
+    public byte[] marshall(Command command) throws ParserChatException {
         checkNotNull("command", command);
 
         Document xmlDoc = documentBuilder.newDocument();
@@ -113,9 +113,11 @@ public final class ParserService {
             Result result = new StreamResult(writer);
             Source source = new DOMSource(xmlDoc);
             transformer.transform(source, result);
-            return writer.toString();
+            return writer.toString().getBytes(ParserConfig.CHARSET);
         } catch (TransformerException e) {
             throw new ParserChatException("Failed to write XML document to string. Command: " + command, e);
+        } catch (UnsupportedEncodingException e) {
+            throw new ParserChatException("Unsupported encoding '" + ParserConfig.CHARSET + "'. Command: " + command, e);
         } finally {
             close(writer);
         }
@@ -186,22 +188,29 @@ public final class ParserService {
         xml.setAttribute(name, String.valueOf(value));
     }
 
-    public Command2 unmarshall(String xml) throws ParserChatException {
-        checkString("xml", xml);
+    public Command unmarshall(byte[] bytes) throws ParserChatException {
+        checkNotNull("bytes", bytes);
 
         // create input source
+        String xml;
+        try {
+            xml = new String(bytes, ParserConfig.CHARSET);
+        } catch (UnsupportedEncodingException e) {
+            throw new ParserChatException("Unsupported encoding '" + ParserConfig.CHARSET + "'.", e);
+        }
         StringReader input = new StringReader(xml);
         try {
+            // parse XML to string
             Document xmlDoc = documentBuilder.parse(new InputSource(input));
 
             // parse header attributes
             Element xmlCommand = xmlDoc.getDocumentElement();
             long id = getLong(xmlCommand, "id");
-            String version = getString(xmlCommand, xml);
-            CommandType type = getCommandType(xmlCommand, xml);
+            String version = getString(xmlCommand, "version");
+            CommandType type = getCommandType(xmlCommand, "type");
 
             // create command
-            Command2 command = new Command2(id, version, type);
+            Command command = new Command(id, version, type);
 
             NodeList childNodes = xmlCommand.getChildNodes();
             for (int i = 0; i < childNodes.getLength(); i++) {

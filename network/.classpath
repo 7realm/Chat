@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry excluding="my/chat/commands/ChannelCommand.java|my/chat/commands/ChatCommand.java|my/chat/commands/ConnectInfoCommand.java|my/chat/commands/LoginCommand.java|my/chat/commands/UserEnterCommand.java|my/chat/commands/UserExitCommand.java|my/chat/commands/UserJoinCommand.java|my/chat/commands/UserLeaveCommand.java" kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="/commons"/>

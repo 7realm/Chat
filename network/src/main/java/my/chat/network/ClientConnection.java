@@ -112,10 +112,10 @@ public class ClientConnection implements Runnable {
 		while (state != ConnectionState.STOP_REQUESED) {
 			try {
 				// TODO interrupt
-				Command command = (Command) in.readObject();
+				CommandHolder commandHolder = (CommandHolder) in.readObject();
 
 				if (commandlistener != null) {
-					commandlistener.onCommand(this, command);
+					commandlistener.onCommand(this, commandHolder.getCommand());
 				}
 			} catch (IOException e) {
 				// TODO only log
@@ -159,11 +159,13 @@ public class ClientConnection implements Runnable {
 	 * @param command the command to send
 	 * @throws ChatIOException if I/O error occurred while sending
 	 */
-	public void sendCommand(Command command) throws ChatIOException {
+	public void sendCommand(byte[] command) throws ChatIOException {
 		checkState(state, ConnectionState.STARTED);
 
 		try {
-			out.writeObject(command);
+		    CommandHolder commandHolder = new CommandHolder();
+		    commandHolder.setCommand(command);
+			out.writeObject(commandHolder);
 			out.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

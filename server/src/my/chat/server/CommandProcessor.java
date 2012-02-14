@@ -1,5 +1,7 @@
 package my.chat.server;
 
+import static my.chat.commons.ArgumentHelper.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -8,12 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import my.chat.commands.ChatCommand;
-import my.chat.commands.ConnectInfoCommand;
-import my.chat.commands.UserEnterCommand;
-import my.chat.commands.UserExitCommand;
-import my.chat.commands.UserJoinCommand;
-import my.chat.commands.UserLeaveCommand;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
 import my.chat.exceptions.ChatNotImplementedException;
@@ -23,10 +19,13 @@ import my.chat.model.PrivateMessage;
 import my.chat.model.User;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
+import my.chat.network.Command.CommandType;
 import my.chat.network.ExceptionHandler;
 import my.chat.network.NetworkService;
 import my.chat.network.OnClientCloseListener;
 import my.chat.network.OnCommandListener;
+import my.chat.parser.ParserChatException;
+import my.chat.parser.ParserService;
 
 public final class CommandProcessor implements OnCommandListener, OnClientCloseListener, ExceptionHandler {
     private final static CommandProcessor INSTANCE = new CommandProcessor();
@@ -60,10 +59,15 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         connection.setExceptionHandler(this);
 
         // TODO init data here
-        sendCommand(connection, new ConnectInfoCommand(user, new ArrayList<PrivateMessage>(), channels));
-        sendCommand(connection, new ChatCommand("server", "Welcome to Chat, " + user.getUsername() + "!"));
-
-        sendCommandToAll(new UserEnterCommand(user));
+        buildCommand(CommandType.CONNECTED)
+            .addData("user", user)
+            .addData("offlineMessages", new ArrayList<PrivateMessage>())
+            .addData("publicChannels", channels)
+            .sendToUser(user);
+        
+        buildCommand(CommandType.USER_EXIT)
+            .addData("user", user)
+            .sendToAll();
     }
 
     protected Channel createChannel(String name, ChannelType type) {
@@ -82,17 +86,56 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
             throw new ChatNotImplementedException("Channel type " + channel.getType() + " is not implemented.");
         }
     }
-    
+
     protected void addUserToChannel(Channel channel, User user) {
         channel.getUsers().add(user);
-        
-        sendCommandToChannel(channel, new UserJoinCommand(channel, user));
+
+        buildCommand(CommandType.CHANNEL_JOIN)
+            .addData("user", user)
+            .addData("channel", channel)
+            .sendToChannel(channel);
     }
 
     protected void removeUserFromChannel(Channel channel, User user) {
         channel.getUsers().remove(user);
 
-        sendCommandToChannel(channel, new UserLeaveCommand(channel, user));
+        buildCommand(CommandType.CHANNEL_LEAVE)
+            .addData("userId", user.getUserId())
+            .addData("channelId", channel.getChannelId())
+            .sendToChannel(channel);
+    }
+
+    @Override
+    public void onClose(ClientConnection connection, Exception occurredException) {
+        // clear association
+        User user = (User) connection.getTag();
+        users.remove(user);
+        connection.setTag(null);
+
+        // remove from all channels
+        for (Channel channel : channels) {
+            if (channel.getUsers().contains(user)) {
+                removeUserFromChannel(channel, user);
+            }
+        }
+
+        buildCommand(CommandType.USER_EXIT)
+            .addData("userId", user.getUserId())
+            .sendToAll();
+    }
+
+    @Override
+    public void onCommand(ClientConnection connection, byte[] bytes) throws ChatException {
+        checkNotNull("connection", connection);
+        checkNotNull("byte", bytes);
+
+        Command command = ParserService.getInstance().unmarshall(bytes);
+    }
+
+    @Override
+    public boolean canHandle(Exception e) {
+        // TODO Auto-generated method stub
+        return false;
     }
 
     protected void sendCommandToUser(User user, Command command) {
@@ -115,41 +158,50 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         }
     }
 
-    @Override
-    public void onClose(ClientConnection connection, Exception occurredException) {
-        // clear association
-        User user = (User) connection.getTag();
-        users.remove(user);
-        connection.setTag(null);
-
-        // remove from all channels
-        for (Channel channel : channels) {
-            if (channel.getUsers().contains(user)) {
-                removeUserFromChannel(channel, user);
-            }
-        }
-        
-        sendCommandToAll(new UserExitCommand(user));
-    }
-
-    @Override
-    public void onCommand(ClientConnection connection, Command command) throws ChatException {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public boolean canHandle(Exception e) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
     private void sendCommand(ClientConnection connection, Command command) {
+        checkNotNull("connection", connection);
+        checkNotNull("command", command);
+
         try {
-            NetworkService.getInstance().sendCommand(connection, command);
+            byte[] bytes = ParserService.getInstance().marshall(command);
+
+            NetworkService.getInstance().sendCommand(connection, bytes);
         } catch (ChatIOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        } catch (ParserChatException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+    }
+
+    private CommandBuilder buildCommand(CommandType type) {
+        return new CommandBuilder(type);
+    }
+
+    public class CommandBuilder {
+        private Command command;
+
+        private CommandBuilder(CommandType type) {
+            command = new Command(type);
+        }
+
+        private CommandBuilder addData(String name, Object value) {
+            command.addItem(name, value);
+            return this;
+        }
+
+        private void sendToAll() {
+            sendCommandToAll(command);
+        }
+
+        private void sendToChannel(Channel channel) {
+            sendCommandToChannel(channel, command);
+        }
+
+        private void sendToUser(User user) {
+            sendCommandToUser(user, command);
+        }
+
     }
 }

@@ -9,20 +9,15 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import my.chat.commands.ChatCommand;
 import my.chat.db.DatabaseServiceRemote;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
 import my.chat.model.User;
 import my.chat.network.ClientConnection;
-import my.chat.network.Command;
-import my.chat.network.ExceptionHandler;
 import my.chat.network.NetworkService;
-import my.chat.network.OnClientCloseListener;
-import my.chat.network.OnCommandListener;
 import my.chat.security.SecurityService;
 
-public class Server implements OnCommandListener, OnClientCloseListener, ExceptionHandler {
+public class Server {
 	private final NetworkService networkService;
 	private final SecurityService securityService;
 	private final DatabaseServiceRemote databaseService;
@@ -67,32 +62,6 @@ public class Server implements OnCommandListener, OnClientCloseListener, Excepti
 		networkService.start();
 	}
 
-	@Override
-	public void onCommand(ClientConnection connection, Command command) throws ChatIOException {
-		System.out.println("Received command: " + command);
-
-		if (command instanceof ChatCommand) {
-			ChatCommand chatCommand = (ChatCommand) command;
-			User user = (User) connection.getTag();
-
-			networkService.sendCommand(connection, new ChatCommand("server", "hello '" + user.getUsername() + "'."));
-			networkService.sendCommand(connection, new ChatCommand("server", "reply to: " + chatCommand.getMessage()));
-		}
-	}
-
-	public void onConnection(ClientConnection connection, User user) throws ChatIOException {
-		// associate user with connection
-		users.put(user, connection);
-		connection.setTag(user);
-		
-		// reassign connection to server
-		connection.setOnCloseListener(this);
-		connection.setOnCommandlistener(this);
-		connection.setExceptionHandler(this);
-		
-		networkService.sendCommand(connection, new ChatCommand("server", "Welcome to Chat, " + user.getUsername() + "!"));
-	}
-
 	private static Server server;
 
 	public static Server getInstance() {
@@ -104,18 +73,5 @@ public class Server implements OnCommandListener, OnClientCloseListener, Excepti
 
 		server.start();
 		System.out.println("Server started.");
-	}
-
-	@Override
-	public void onClose(ClientConnection connection, Exception occurredException) {
-		// clear association
-		users.remove(connection.getTag());
-		connection.setTag(null);
-	}
-
-	@Override
-	public boolean canHandle(Exception e) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 }

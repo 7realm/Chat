@@ -31,8 +31,8 @@ public class NetworkService implements OnConnectionListener, OnServerCloseListen
         serverConnection.stop();
     }
 
-    public void sendCommand(ClientConnection connection, Command command) throws ChatIOException {
-        connection.sendCommand(command);
+    public void sendCommand(ClientConnection connection, byte[] bytes) throws ChatIOException {
+        connection.sendCommand(bytes);
     }
 
     @Override
