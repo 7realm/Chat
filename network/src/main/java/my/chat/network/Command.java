@@ -68,10 +68,10 @@ public class Command {
     public String getString(String name) {
         Object value = get(name);
         if (value instanceof String) {
-            throw new ChatRuntimeException("Command '" + type + "' data item '" + name + "' is not string.");
+            return (String) value;
         }
         
-        return (String) value;
+        throw new ChatRuntimeException("Command '" + type + "' data item '" + name + "' is not string.");
     }
 
     /**

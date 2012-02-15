@@ -15,6 +15,7 @@ import my.chat.exceptions.ChatIOException;
 import my.chat.model.User;
 import my.chat.network.ClientConnection;
 import my.chat.network.NetworkService;
+import my.chat.parser.ParserService;
 import my.chat.security.SecurityService;
 
 public class Server {
@@ -60,6 +61,7 @@ public class Server {
 
 	public void start() throws ChatIOException {
 		networkService.start();
+		ParserService.getInstance().start();
 	}
 
 	private static Server server;

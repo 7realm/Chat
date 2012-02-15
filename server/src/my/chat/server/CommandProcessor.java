@@ -65,14 +65,13 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
             .addData("publicChannels", channels)
             .sendToUser(user);
         
-        buildCommand(CommandType.USER_EXIT)
+        buildCommand(CommandType.USER_ENTER)
             .addData("user", user)
             .sendToAll();
     }
 
     protected Channel createChannel(String name, ChannelType type) {
         Channel channel = new Channel(channelId++, name, type, new Date());
-
         channels.add(channel);
         return channel;
     }

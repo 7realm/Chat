@@ -11,6 +11,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -28,10 +29,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import my.chat.exceptions.ConfigurationChatException;
+import my.chat.model.User;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandData;
 import my.chat.network.Command.CommandType;
 
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -53,7 +56,7 @@ public final class ParserService {
     private static final String NODE_LONG = "Long";
     private static final String NODE_INTEGER = "Integer";
     private static final String NODE_STRING = "String";
-    
+
     private static final ParserService INSTANCE = new ParserService();
     private Transformer transformer;
     private DocumentBuilder documentBuilder;
@@ -87,39 +90,41 @@ public final class ParserService {
     public byte[] marshall(Command command) throws ParserChatException {
         checkNotNull("command", command);
 
-        Document xmlDoc = documentBuilder.newDocument();
-        Element xmlCommand = xmlDoc.createElement("Command");
-        xmlDoc.appendChild(xmlCommand);
-
-        // set command header
-        setAttribute(xmlCommand, "id", command.getId());
-        setAttribute(xmlCommand, "version", command.getVersion());
-        setAttribute(xmlCommand, "type", command.getType());
-
-        // set command data
-        for (Iterator<CommandData> i = command.iterator(); i.hasNext();) {
-            CommandData data = i.next();
-
-            Element item = marshall(xmlDoc, data.getName(), data.getValue());
-            xmlCommand.appendChild(item);
-        }
-
-        // TODO need this?
-        xmlDoc.appendChild(xmlCommand);
-
-        // write XML to string
-        StringWriter writer = new StringWriter();
         try {
-            Result result = new StreamResult(writer);
-            Source source = new DOMSource(xmlDoc);
-            transformer.transform(source, result);
-            return writer.toString().getBytes(ParserConfig.CHARSET);
-        } catch (TransformerException e) {
-            throw new ParserChatException("Failed to write XML document to string. Command: " + command, e);
-        } catch (UnsupportedEncodingException e) {
-            throw new ParserChatException("Unsupported encoding '" + ParserConfig.CHARSET + "'. Command: " + command, e);
-        } finally {
-            close(writer);
+            Document xmlDoc = documentBuilder.newDocument();
+            Element xmlCommand = xmlDoc.createElement("Command");
+            xmlDoc.appendChild(xmlCommand);
+
+            // set command header
+            setAttribute(xmlCommand, "id", command.getId());
+            setAttribute(xmlCommand, "version", command.getVersion());
+            setAttribute(xmlCommand, "type", command.getType());
+
+            // set command data
+            for (Iterator<CommandData> i = command.iterator(); i.hasNext();) {
+                CommandData data = i.next();
+
+                Element item = marshall(xmlDoc, data.getName(), data.getValue());
+                xmlCommand.appendChild(item);
+            }
+
+            // write XML to string
+            StringWriter writer = new StringWriter();
+            try {
+                Result result = new StreamResult(writer);
+                Source source = new DOMSource(xmlDoc);
+                transformer.transform(source, result);
+                return writer.toString().getBytes(ParserConfig.CHARSET);
+            } catch (TransformerException e) {
+                throw new ParserChatException("Failed to write XML document to string. Command: " + command, e);
+            } catch (UnsupportedEncodingException e) {
+                throw new ParserChatException("Unsupported encoding '" + ParserConfig.CHARSET + "'. Command: " + command, e);
+            } finally {
+                close(writer);
+            }
+        } catch (DOMException e) {
+            // TODO: handle exception
+            throw new ParserChatException("Failed to create DOM three.", e);
         }
     }
 
@@ -131,7 +136,7 @@ public final class ParserService {
         } else if (value instanceof Integer) {
             result = xmlDoc.createElement(NODE_INTEGER);
             setAttribute(result, "value", value);
-        } else if (value instanceof Integer) {
+        } else if (value instanceof Long) {
             result = xmlDoc.createElement(NODE_LONG);
             setAttribute(result, "value", value);
         } else if (value instanceof Boolean) {
@@ -150,6 +155,7 @@ public final class ParserService {
         } else {
             // use object with reflections
             Class<? extends Object> clazz = value.getClass();
+            User.class.isAnnotationPresent(ObjectData.class);
             if (!clazz.isAnnotationPresent(ObjectData.class)) {
                 throw new ParserChatException("Class '" + clazz.getName() + "' named '" + name + "' is missing annotation.");
             }
@@ -159,8 +165,8 @@ public final class ParserService {
             setAttribute(result, "class", clazz.getName());
 
             // process all annotated fields
-            for (Field field : clazz.getFields()) {
-                if (!field.isAnnotationPresent(FieldDataIgnore.class)) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (!field.isAnnotationPresent(FieldDataIgnore.class) && !Modifier.isStatic(field.getModifiers())) {
                     field.setAccessible(true);
 
                     try {
@@ -195,6 +201,8 @@ public final class ParserService {
         String xml;
         try {
             xml = new String(bytes, ParserConfig.CHARSET);
+            // TODO debug
+            System.out.println(xml);
         } catch (UnsupportedEncodingException e) {
             throw new ParserChatException("Unsupported encoding '" + ParserConfig.CHARSET + "'.", e);
         }
@@ -280,7 +288,7 @@ public final class ParserService {
                         String name = getString(element, "name");
 
                         // set field value
-                        Field field = clazz.getField(name);
+                        Field field = clazz.getDeclaredField(name);
                         field.setAccessible(true);
                         field.set(result, value);
                     }

@@ -14,8 +14,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import my.chat.model.commons.ChatEntity;
+import my.chat.parser.FieldDataIgnore;
 import my.chat.parser.ObjectData;
 
 /**
@@ -39,12 +41,15 @@ public class User implements ChatEntity {
 
     /** The user password. */
     @Column(nullable = false, length = 50)
+    @FieldDataIgnore
     private String password;
 
     /** The list of user's contacts. */
+    @Transient
     private List<User> contacts = new ArrayList<User>();
 
     /** List of user's statuses. */
+    @Transient
     private List<Status> statuses= new ArrayList<Status>();
     
     public User(){

@@ -1,6 +1,6 @@
 <project name="chat.entities" default="" basedir=".">
 
-	<property name="jar.name" value="entities.jar"/>
+	<property name="jar.name" value="entities.jar" />
 	<property file="../chat.properties" />
 
 	<target name="clean">
@@ -9,12 +9,14 @@
 		</delete>
 	</target>
 
-
 	<target name="compile">
-		<mkdir dir="${build}/classes"/>
+		<mkdir dir="${build}/classes" />
 		<javac srcdir="${src}" destdir="${build}/classes">
 			<classpath>
 				<fileset dir="${lib}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="../${ear.name}/content/lib">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
