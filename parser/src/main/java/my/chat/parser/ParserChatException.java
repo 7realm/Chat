@@ -8,18 +8,16 @@ public class ParserChatException extends ChatException {
     /**
      * @param message
      */
-    public ParserChatException(String message) {
-        super(message);
-        // TODO Auto-generated constructor stub
+    public ParserChatException(String message, Object... params) {
+        super(message, params);
     }
 
     /**
      * @param message
      * @param cause
      */
-    public ParserChatException(String message, Throwable cause) {
-        super(message, cause);
-        // TODO Auto-generated constructor stub
+    public ParserChatException(String message, Throwable cause, Object... params) {
+        super(message, cause, params);
     }
 
 }

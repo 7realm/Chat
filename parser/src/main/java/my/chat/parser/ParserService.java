@@ -4,7 +4,7 @@
 package my.chat.parser;
 
 import static my.chat.commons.ArgumentHelper.checkNotNull;
-import static my.chat.commons.ArgumentHelper.close;
+import static my.chat.commons.Helper.close;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -28,7 +28,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import my.chat.commons.Helper;
 import my.chat.exceptions.ConfigurationChatException;
+import my.chat.logging.Log;
 import my.chat.model.User;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandData;
@@ -79,9 +81,9 @@ public final class ParserService {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilder = documentBuilderFactory.newDocumentBuilder();
         } catch (TransformerConfigurationException e) {
-            throw new ConfigurationChatException("Failed to create XML transformer.", e);
+            throw Log.error(this, new ConfigurationChatException("Failed to create XML transformer.", e));
         } catch (ParserConfigurationException e) {
-            throw new ConfigurationChatException("Failed to create XML document builder.", e);
+            throw Log.error(this, new ConfigurationChatException("Failed to create XML document builder.", e));
         }
 
         // TODO scan files for rules
@@ -116,15 +118,14 @@ public final class ParserService {
                 transformer.transform(source, result);
                 return writer.toString().getBytes(ParserConfig.CHARSET);
             } catch (TransformerException e) {
-                throw new ParserChatException("Failed to write XML document to string. Command: " + command, e);
+                throw Log.error(this, new ParserChatException("Failed to write XML document to string. Command: %1.", e, command));
             } catch (UnsupportedEncodingException e) {
-                throw new ParserChatException("Unsupported encoding '" + ParserConfig.CHARSET + "'. Command: " + command, e);
+                throw Log.error(this, new ParserChatException("Unsupported encoding %1. Command: %2.", e, ParserConfig.CHARSET, command));
             } finally {
-                close(writer);
+                Helper.close(writer);
             }
         } catch (DOMException e) {
-            // TODO: handle exception
-            throw new ParserChatException("Failed to create DOM three.", e);
+            throw Log.error(this, new ParserChatException("Failed to create DOM three.", e));
         }
     }
 
@@ -157,7 +158,7 @@ public final class ParserService {
             Class<? extends Object> clazz = value.getClass();
             User.class.isAnnotationPresent(ObjectData.class);
             if (!clazz.isAnnotationPresent(ObjectData.class)) {
-                throw new ParserChatException("Class '" + clazz.getName() + "' named '" + name + "' is missing annotation.");
+                throw Log.error(this, new ParserChatException("Class '%1' named '%2' is missing annotation.", clazz.getName(), name));
             }
 
             // create Object node and add attribute to it
@@ -177,9 +178,9 @@ public final class ParserService {
                         Element xmlField = marshall(xmlDoc, fieldName, fieldValue);
                         result.appendChild(xmlField);
                     } catch (IllegalArgumentException e) {
-                        // TODO should never happen
+                        Log.warn(this, e, "Unexpected exception.");
                     } catch (IllegalAccessException e) {
-                        // TODO should never happen
+                        Log.warn(this, e, "Unexpected exception.");
                     }
                 }
             }
@@ -201,10 +202,10 @@ public final class ParserService {
         String xml;
         try {
             xml = new String(bytes, ParserConfig.CHARSET);
-            // TODO debug
-            System.out.println(xml);
+
+            Log.debug(this, "Received XML: %1.", xml);
         } catch (UnsupportedEncodingException e) {
-            throw new ParserChatException("Unsupported encoding '" + ParserConfig.CHARSET + "'.", e);
+            throw Log.error(this, new ParserChatException("Unsupported encoding %1.", e, ParserConfig.CHARSET));
         }
         StringReader input = new StringReader(xml);
         try {
@@ -235,11 +236,11 @@ public final class ParserService {
 
             return command;
         } catch (SAXException e) {
-            throw new ParserChatException("Failed to parse XML from string '" + xml + "'.", e);
+            throw Log.error(this, new ParserChatException("Failed to parse XML from string '%1'.", e, xml));
         } catch (IOException e) {
-            throw new ParserChatException("Failed to read XML from string '" + xml + "'.", e);
+            throw Log.error(this, new ParserChatException("Failed to read XML from string '%1'.", e, xml));
         } finally {
-            input.close();
+            close(input);
         }
     }
 
@@ -294,18 +295,18 @@ public final class ParserService {
                     }
                 }
             } catch (NoSuchFieldException e) {
-                throw new ParserChatException("Failed to find field for class '" + className + "'.", e);
+                throw Log.error(this, new ParserChatException("Failed to find field for class '%1'.", e, className));
             } catch (IllegalArgumentException e) {
-                throw new ParserChatException("Failed to set field for class '" + className + "'.", e);
+                throw Log.error(this, new ParserChatException("Failed to set field for class '%1'.", e, className));
             } catch (IllegalAccessException e) {
-                throw new ParserChatException("Default constructor is not accessible for '" + className + "'.", e);
+                throw Log.error(this, new ParserChatException("Default constructor is not accessible for '%1'.", e, className));
             } catch (InstantiationException e) {
-                throw new ParserChatException("Failed to create class '" + className + "', passed in xml.", e);
+                throw Log.error(this, new ParserChatException("Failed to create class '%1', passed in xml.", e, className));
             } catch (ClassNotFoundException e) {
-                throw new ParserChatException("Failed to find class '" + className + "', passed in xml.", e);
+                throw Log.error(this, new ParserChatException("Failed to find class '%1', passed in xml.", e, className));
             }
         } else {
-            throw new ParserChatException("Unknown tag name '" + tagName + "'.");
+            throw Log.error(this, new ParserChatException("Unknown tag name '%1'.", tagName));
         }
 
         return result;
@@ -316,7 +317,7 @@ public final class ParserService {
             String value = getString(xml, name);
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
-            throw new ParserChatException("Failed to parse long value at '" + name + "'.", e);
+            throw Log.error(null, new ParserChatException("Failed to parse long value at '%1'.", e, name));
         }
     }
 
@@ -325,7 +326,7 @@ public final class ParserService {
             String value = getString(xml, name);
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            throw new ParserChatException("Failed to parse int value at '" + name + "'.", e);
+            throw Log.error(null, new ParserChatException("Failed to parse int value at '%1'.", e, name));
         }
     }
 
@@ -336,7 +337,7 @@ public final class ParserService {
         } else if ("false".equalsIgnoreCase(value)) {
             return false;
         } else {
-            throw new ParserChatException("Failed to parse boolean value '" + value + "' at '" + name + "'.");
+            throw Log.error(null, new ParserChatException("Failed to parse boolean value '%1' at '%2'.", value, name));
         }
     }
 
@@ -345,13 +346,13 @@ public final class ParserService {
             String value = getString(xml, name);
             return CommandType.valueOf(value);
         } catch (IllegalArgumentException e) {
-            throw new ParserChatException("Failed to parse command type value at '" + name + "'.", e);
+            throw Log.error(null, new ParserChatException("Failed to parse command type value at %1'.", e, name));
         }
     }
 
     private static String getString(Element xml, String name) throws ParserChatException {
         if (!xml.hasAttribute(name)) {
-            throw new ParserChatException("The attribute '" + name + "' is missing.");
+            throw Log.error(null, new ParserChatException("The attribute '%1' is missing.", name));
         }
         return xml.getAttribute(name);
     }

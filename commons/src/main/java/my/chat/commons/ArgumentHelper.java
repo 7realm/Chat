@@ -1,7 +1,5 @@
 package my.chat.commons;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.Arrays;
 
 import my.chat.exceptions.ConfigurationChatException;
@@ -52,14 +50,6 @@ public final class ArgumentHelper {
     public static void checkInit(String fieldName, Object fieldValue) {
         if (fieldValue == null) {
             throw new ConfigurationChatException("Field '" + fieldName + "' is not set.");
-        }
-    }
-
-    public static void close(Closeable closeable) {
-        try {
-            closeable.close();
-        } catch (IOException e) {
-            // TODO ignore exceptions
         }
     }
 }

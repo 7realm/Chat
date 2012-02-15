@@ -3,6 +3,8 @@
  */
 package my.chat.exceptions;
 
+import static my.chat.commons.Helper.makeMessage;
+
 /**
  * Base runtime exception for all exceptions in this application.
  * <p>
@@ -11,27 +13,13 @@ package my.chat.exceptions;
  * @author 7realm
  */
 public class ChatRuntimeException extends RuntimeException {
-
-    /**  */
     private static final long serialVersionUID = 4765530370566519581L;
     
-    /**
-     * @param message
-     */
-    public ChatRuntimeException(String message) {
-        super(message);
-        // TODO Auto-generated constructor stub
+    public ChatRuntimeException(String message, Object... params) {
+        super(makeMessage(message, params));
     }
 
-    /**
-     * @param message
-     * @param cause
-     */
-    public ChatRuntimeException(String message, Throwable cause) {
-        super(message, cause);
-        // TODO Auto-generated constructor stub
+    public ChatRuntimeException(String message, Throwable cause, Object... params) {
+        super(makeMessage(message, params), cause);
     }
-
-   
-
 }

@@ -64,7 +64,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
             .addData("offlineMessages", new ArrayList<PrivateMessage>())
             .addData("publicChannels", channels)
             .sendToUser(user);
-        
+
         buildCommand(CommandType.USER_ENTER)
             .addData("user", user)
             .sendToAll();
@@ -82,7 +82,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
             addUserToChannel(channel, user);
             break;
         default:
-            throw new ChatNotImplementedException("Channel type " + channel.getType() + " is not implemented.");
+            throw new ChatNotImplementedException("Channel type %1 is not implemented.", channel.getType());
         }
     }
 
@@ -166,11 +166,9 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
             NetworkService.getInstance().sendCommand(connection, bytes);
         } catch (ChatIOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            // TODO just ignore exceptions, logging is done at lower level
         } catch (ParserChatException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            // TODO just ignore exceptions, logging is done at lower level
         }
     }
 

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import my.chat.exceptions.ChatRuntimeException;
+import my.chat.logging.Log;
 
 import static my.chat.commons.ArgumentHelper.checkString;
 
@@ -62,16 +63,27 @@ public class Command {
                 return commandData.getValue();
             }
         }
-        throw new ChatRuntimeException("Command '" + type + "' does not have '" + name + "' data.");
+        
+        throw Log.error(this, new ChatRuntimeException("Command '%1' does not have '%2' data.", type, name));
     }
-    
+
     public String getString(String name) {
         Object value = get(name);
         if (value instanceof String) {
             return (String) value;
         }
         
-        throw new ChatRuntimeException("Command '" + type + "' data item '" + name + "' is not string.");
+        throw Log.error(this, new ChatRuntimeException("Command '%1' data item '%2' is not string.", type, name));
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(type.name());
+        builder.append(". Data item names: ");
+        for (CommandData item : data) {
+            builder.append(item.getName());
+        }
+        return builder.toString();
     }
 
     /**
