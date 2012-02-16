@@ -18,9 +18,9 @@ public final class ParserConfig {
         addRule(CommandType.LOGIN, "password", String.class);
         
         // CONNECTED
-        addRule(CommandType.CONNECTED, "user", User.class);
-        addRule(CommandType.CONNECTED, "offlineMessages", List.class);
-        addRule(CommandType.CONNECTED, "publicChannels", List.class);
+        addRule(CommandType.LOGGED_IN, "user", User.class);
+        addRule(CommandType.LOGGED_IN, "offlineMessages", List.class);
+        addRule(CommandType.LOGGED_IN, "publicChannels", List.class);
         
         // USER
         addRule(CommandType.USER_ENTER, "user", User.class);

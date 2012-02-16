@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="chat.console-client" default="create_run_jar">
+
+	<target name="create_run_jar">
+		<jar destfile="D:/workspace/chat/console-client/target/client.jar">
+			<manifest>
+				<attribute name="Class-Path" value="./log4j-1.2.16.jar" />
+				<attribute name="Main-Class" value="my.chat.client.console.ConsoleClient" />
+			</manifest>
+			<fileset dir="D:/workspace/chat/console-client/bin" />
+			<fileset dir="D:/workspace/chat/commons/bin" />
+			<fileset dir="D:/workspace/chat/network/bin" />
+			<fileset dir="D:/workspace/chat/entities/bin" />
+			<fileset dir="D:/workspace/chat/parser/bin" />
+			<zipfileset dir="D:\workspace\chat\.lib" includes="log4j-1.2.16.jar" />
+		</jar>
+	</target>
+</project>

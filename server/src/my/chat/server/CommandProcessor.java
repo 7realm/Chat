@@ -50,13 +50,14 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         lastChannelId = 0;
 
         createChannel("main", ChannelType.PUBLIC);
+        createChannel("support", ChannelType.PUBLIC);
     }
 
     public void acceptConnection(ClientConnection connection, User user) throws SecurityChatException {
         if (onlineUsers.containsKey(user.getUserId())) {
             throw new SecurityChatException("User %1 is already logged in.", user.getUsername());
         }
-        
+
         // associate user with connection
         usersToConnection.put(user, connection);
         connection.setTag(user);
@@ -68,7 +69,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         connection.setExceptionHandler(this);
 
         // TODO init data here
-        buildCommand(CommandType.CONNECTED)
+        buildCommand(CommandType.LOGGED_IN)
             .addData("user", user)
             .addData("offlineMessages", new ArrayList<PrivateMessage>())
             .addData("publicChannels", new ArrayList<Channel>(channels.values()))
@@ -165,9 +166,14 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
                 chatMessage.setAuthor(connectionUser);
                 channel.getMessages().add(chatMessage);
 
-                buildCommand(CommandType.CHANNEL_MESSAGE)
-                    .addData("message", chatMessage)
-                    .sendToChannel(channel);
+                // check if user is in channel
+                if (channel.getUsers().contains(connectionUser)) {
+                    buildCommand(CommandType.CHANNEL_MESSAGE)
+                        .addData("message", chatMessage)
+                        .sendToChannel(channel);
+                } else {
+                    sendFailure(command, connectionUser, "User is not in channel.");
+                }
                 break;
             case USER_ADD_CONTACT:
                 User contactToAdd;

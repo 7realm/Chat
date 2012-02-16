@@ -149,7 +149,7 @@ public class Command {
         
         /** For user login. */
         LOGIN,
-
+        
         /** For user enter to chat. */
         USER_ENTER,
 
@@ -166,7 +166,7 @@ public class Command {
         USER_REMOVE_CONTACT,
 
         /** This command is sent when user successfully connected. */
-        CONNECTED,
+        LOGGED_IN,
 
         /** User entered channel. */
         CHANNEL_JOIN,
