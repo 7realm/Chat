@@ -21,6 +21,7 @@
 	</target>
 
 	<target name="make-ear" depends="build">
+		<delete file="${ear.name}.ear" failonerror="no" />
 		<jar destfile="${ear.name}.ear">
 			<fileset dir="content" />
 		</jar>

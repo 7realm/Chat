@@ -49,10 +49,11 @@ public class DatabaseService implements DatabaseServiceRemote, DatabaseServiceLo
         checkString("password", password);
 
         try {
-            Query query = entityManager.createNamedQuery("loginUser", User.class)
+            Query query = entityManager.createNamedQuery("loginUser")
                 .setParameter("username", username)
                 .setParameter("password", password)
                 .setMaxResults(1);
+            
             return (User) query.getSingleResult();
         } catch (NoResultException e) {
             throw new SecurityChatException("User '%1' is not found in database.", e, username);
