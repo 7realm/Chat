@@ -17,11 +17,77 @@ import my.chat.model.User;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandType;
+import my.chat.network.CommandContentException;
 import my.chat.network.OnCommandListener;
 import my.chat.parser.ParserChatException;
 import my.chat.parser.ParserService;
 
 public class ConsoleClient {
+    private static final class ClientCommandProcessor implements OnCommandListener {
+        @Override
+        public void onCommand(ClientConnection connection, byte[] bytes) throws ChatIOException {
+            try {
+                Command command = ParserService.getInstance().unmarshall(bytes);
+
+                switch (command.getType()) {
+                case CONNECTED:
+                    currentUser = (User) command.get("user");
+                    channels = (List<Channel>) command.get("publicChannels");
+                    break;
+                case CHANNEL_JOIN:
+                    Channel channel = (Channel) command.get("channel");
+
+                    for (int i = 0; i < channels.size(); i++) {
+                        if (channels.get(i).getChannelId() == channel.getChannelId()) {
+                            channels.set(i, channel);
+                            break;
+                        }
+                    }
+                    break;
+                case CHANNEL_LEAVE:
+                    long channelId = command.getLong("channelId");
+                    long userId = command.getLong("userId");
+                    for (int i = 0; i < channels.size(); i++) {
+                        if (channels.get(i).getChannelId() == channelId) {
+                            List<User> users = channels.get(i).getUsers();
+                            for (Iterator<User> j = users.listIterator(); j.hasNext();) {
+                                if (j.next().getUserId() == userId) {
+                                    j.remove();
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                case CHANNEL_MESSAGE:
+                    ChatMessage message = (ChatMessage) command.get("message");
+
+                    channelId = message.getChannel().getChannelId();
+                    for (int i = 0; i < channels.size(); i++) {
+                        if (channels.get(i).getChannelId() == channelId) {
+                            channels.get(i).getMessages().add(message);
+                            break;
+                        }
+                    }
+                default:
+                    break;
+                }
+
+            } catch (ParserChatException e) {
+                System.err.println("Failed to process command.");
+                e.printStackTrace();
+            } catch (CommandContentException e) {
+                System.err.println("Failed to process command.");
+                e.printStackTrace();
+            } finally {
+                synchronized (LOCK) {
+                    LOCK.notify();
+                }
+            }
+        }
+    }
+
     private static final String CMD_LOGIN = "!login";
     private static final String CMD_JOIN = "!join";
     private static final String CMD_SEND = "!send";
@@ -97,67 +163,7 @@ public class ConsoleClient {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         ParserService.getInstance().start();
 
-        OnCommandListener commandlistener = new OnCommandListener() {
-            @Override
-            public void onCommand(ClientConnection connection, byte[] bytes) throws ChatIOException {
-                try {
-                    Command command = ParserService.getInstance().unmarshall(bytes);
-
-                    switch (command.getType()) {
-                    case CONNECTED:
-                        currentUser = (User) command.get("user");
-                        channels = (List<Channel>) command.get("publicChannels");
-                        break;
-                    case CHANNEL_JOIN:
-                        Channel channel = (Channel) command.get("channel");
-
-                        for (int i = 0; i < channels.size(); i++) {
-                            if (channels.get(i).getChannelId() == channel.getChannelId()) {
-                                channels.set(i, channel);
-                                break;
-                            }
-                        }
-                        break;
-                    case CHANNEL_LEAVE:
-                        long channelId = command.getLong("channelId");
-                        long userId = command.getLong("userId");
-                        for (int i = 0; i < channels.size(); i++) {
-                            if (channels.get(i).getChannelId() == channelId) {
-                                List<User> users = channels.get(i).getUsers();
-                                for (Iterator<User> j = users.listIterator(); j.hasNext();) {
-                                    if (j.next().getUserId() == userId) {
-                                        j.remove();
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        break;
-                    case CHANNEL_MESSAGE:
-                        ChatMessage message = (ChatMessage) command.get("message");
-
-                        channelId = message.getChannel().getChannelId();
-                        for (int i = 0; i < channels.size(); i++) {
-                            if (channels.get(i).getChannelId() == channelId) {
-                                channels.get(i).getMessages().add(message);
-                                break;
-                            }
-                        }
-                    default:
-                        break;
-                    }
-
-                } catch (ParserChatException e) {
-                    System.err.println("Failed to process command.");
-                    e.printStackTrace();
-                } finally {
-                    synchronized (LOCK) {
-                        LOCK.notify();
-                    }
-                }
-            }
-        };
+        OnCommandListener commandlistener = new ClientCommandProcessor();
 
         while (true) {
             try {

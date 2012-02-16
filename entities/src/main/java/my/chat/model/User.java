@@ -13,6 +13,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -23,11 +25,14 @@ import my.chat.parser.ObjectData;
 /**
  * Data container for chat user.
  */
+@NamedQueries({
+    @NamedQuery(name = "loginUser", query = "SELECT u FROM User u WHERE u.username = :username AND u.password = :password"),
+    @NamedQuery(name = "countUsersByName", query = "SELECT COUNT(u) FROM User u WHERE u.username = :username") })
 @Entity
 @Table(name = "user")
 @ObjectData
 public class User implements ChatEntity {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -6808087150087966591L;
 
     /** The user ID. */
     @Id
@@ -50,9 +55,9 @@ public class User implements ChatEntity {
 
     /** List of user's statuses. */
     @Transient
-    private List<Status> statuses= new ArrayList<Status>();
-    
-    public User(){
+    private List<Status> statuses = new ArrayList<Status>();
+
+    public User() {
         // empty
     }
 
@@ -92,12 +97,12 @@ public class User implements ChatEntity {
 
         // add status with current date
         statuses.add(new Status(content, new Date()));
-        
+
         // TODO notify
     }
-    
+
     public void addContact(User user) {
-        
+
     }
 
     /**

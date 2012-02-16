@@ -61,6 +61,10 @@ public abstract class Message implements Serializable {
 		return author;
 	}
 	
+	public void setAuthor(User author) {
+        this.author = author;
+    }
+	
 	/**
 	 * @return the authorDate
 	 */

@@ -5,17 +5,21 @@ package my.chat.security;
 
 import static my.chat.commons.ArgumentHelper.checkNotNull;
 import my.chat.db.DatabaseServiceRemote;
-import my.chat.db.LoginChatException;
+import my.chat.db.SecurityChatException;
 import my.chat.exceptions.ChatException;
-import my.chat.exceptions.ChatRuntimeException;
+import my.chat.exceptions.ChatIOException;
 import my.chat.logging.Log;
 import my.chat.model.User;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
+import my.chat.network.Command.CommandType;
+import my.chat.network.CommandContentException;
 import my.chat.network.ExceptionHandler;
+import my.chat.network.NetworkService;
 import my.chat.network.OnClientCloseListener;
 import my.chat.network.OnCommandListener;
 import my.chat.network.OnConnectionListener;
+import my.chat.parser.ParserChatException;
 import my.chat.parser.ParserService;
 import my.chat.server.CommandProcessor;
 
@@ -45,39 +49,76 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
     }
 
     @Override
-    public void onCommand(ClientConnection connection, byte[] bytes) throws ChatException {
+    public void onCommand(ClientConnection connection, byte[] bytes) {
         checkNotNull("connection", connection);
         checkNotNull("byte", bytes);
 
-        Command command = ParserService.getInstance().unmarshall(bytes);
-
-        switch (command.getType()) {
-        case LOGIN:
+        try {
+            Command command = ParserService.getInstance().unmarshall(bytes);
             try {
-                // check user name
-                User user = databaseService.login(command.getString("username"), command.getString("password"));
+                switch (command.getType()) {
+                case CREATE:
+                    String username = command.getString("username");
+                    String password = command.getString("password");
 
-                Log.info(this, "%1 is accepted for user %2.", connection, user.getUsername());
+                    // create user in database
+                    User user = databaseService.createUser(username, password);
 
-                // server should reassign connection to him
-                CommandProcessor.getInstance().acceptConnection(connection, user);
-            } catch (ChatRuntimeException e) {
+                    Log.info(this, "User %1 is created.", username);
+
+                    // notify about create
+                    Command success = new Command(CommandType.CREATE)
+                        .addItem("user", user);
+                    byte[] successBytes = ParserService.getInstance().marshall(success);
+                    NetworkService.getInstance().sendCommand(connection, successBytes);
+                    break;
+                case LOGIN:
+                    username = command.getString("username");
+                    password = command.getString("password");
+
+                    // check user name
+                    user = databaseService.login(username, password);
+
+                    Log.info(this, "%1 is accepted for user %2.", connection, user.getUsername());
+
+                    // server should reassign connection to him
+                    CommandProcessor.getInstance().acceptConnection(connection, user);
+                    break;
+                default:
+                    Log.info(this, "Ignoring not login or create command %1.", command);
+                    break;
+                }
+            } catch (CommandContentException e) {
                 Log.info(this, e, "Connection login attempt is rejected.");
+
+                sendFailure(connection, command, e.getMessage());
 
                 // stop connection
                 connection.stop();
-            } catch (LoginChatException e) {
+            } catch (SecurityChatException e) {
                 Log.info(this, e, "Connection login attempt is rejected.");
+
+                sendFailure(connection, command, e.getMessage());
 
                 // stop connection
                 connection.stop();
             }
-            break;
+        } catch (ChatException e) {
+            Log.warn(this, e, "Unexpected failure while processing command.");
 
-        default:
-            Log.info(this, "Ignoring not login command %1.", command);
-            break;
+            // stop connection
+            connection.stop();
         }
+    }
+
+    private void sendFailure(ClientConnection connection, Command command, String message) throws ParserChatException,
+        ChatIOException {
+        Command failure = new Command(CommandType.FAILURE)
+            .addItem("message", message)
+            .addItem("commandId", command.getId())
+            .addItem("commandType", command.getType());
+        byte[] failBytes = ParserService.getInstance().marshall(failure);
+        NetworkService.getInstance().sendCommand(connection, failBytes);
     }
 
     @Override

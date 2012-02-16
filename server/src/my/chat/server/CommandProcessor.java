@@ -9,9 +9,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import my.chat.db.SecurityChatException;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
 import my.chat.exceptions.ChatNotImplementedException;
+import my.chat.logging.Log;
 import my.chat.model.Channel;
 import my.chat.model.Channel.ChannelType;
 import my.chat.model.ChatMessage;
@@ -20,6 +22,7 @@ import my.chat.model.User;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandType;
+import my.chat.network.CommandContentException;
 import my.chat.network.ExceptionHandler;
 import my.chat.network.NetworkService;
 import my.chat.network.OnClientCloseListener;
@@ -41,15 +44,19 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     private final Map<User, ClientConnection> usersToConnection = Collections.synchronizedMap(new HashMap<User, ClientConnection>());
     private final Map<Long, Channel> channels = Collections.synchronizedMap(new HashMap<Long, Channel>());
     private final Map<Long, User> onlineUsers = Collections.synchronizedMap(new HashMap<Long, User>());
-    private int channelId;
+    private int lastChannelId;
 
     public void start() {
-        channelId = 0;
+        lastChannelId = 0;
 
         createChannel("main", ChannelType.PUBLIC);
     }
 
-    public void acceptConnection(ClientConnection connection, User user) {
+    public void acceptConnection(ClientConnection connection, User user) throws SecurityChatException {
+        if (onlineUsers.containsKey(user.getUserId())) {
+            throw new SecurityChatException("User %1 is already logged in.", user.getUsername());
+        }
+        
         // associate user with connection
         usersToConnection.put(user, connection);
         connection.setTag(user);
@@ -73,7 +80,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     }
 
     protected Channel createChannel(String name, ChannelType type) {
-        Channel channel = new Channel(channelId++, name, type, new Date());
+        Channel channel = new Channel(lastChannelId++, name, type, new Date());
         channels.put(channel.getChannelId(), channel);
         return channel;
     }
@@ -102,7 +109,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
             .addData("userId", user.getUserId())
             .addData("channelId", channel.getChannelId())
             .sendToChannel(channel);
-        
+
         channel.getUsers().remove(user);
     }
 
@@ -133,71 +140,116 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
         Command command = ParserService.getInstance().unmarshall(bytes);
 
-        switch (command.getType()) {
-        case CHANNEL_JOIN:
-            User user = getUser(command.getLong("userId"));
-            Channel channel = getChannel(command.getLong("channelId"));
-            if (user == null) {
-                // TODO remove sys err
-                System.err.println("User is not found.");
-                break;
-            }
-            if (channel == null) {
-                System.err.println("Channel is not found.");
-                break;
-            }
-            requestChannelEnter(channel, user);
-            break;
-        case CHANNEL_LEAVE:
-            user = getUser(command.getLong("userId"));
-            channel = getChannel(command.getLong("channelId"));
-            if (user == null) {
-                // TODO remove sys err
-                System.err.println("User is not found.");
-                break;
-            }
-            if (channel == null) {
-                System.err.println("Channel is not found.");
-                break;
-            }
-            removeUserFromChannel(channel, user);
-            break;
-        case CHANNEL_MESSAGE:
-            // TODO check
-            ChatMessage message = (ChatMessage) command.get("message");
-            if (message == null) {
-                System.err.println("Message is not found.");
-                break;
-            }
-            long id = message.getChannel().getChannelId();
-            channel = getChannel(id);
-            if (channel == null) {
-                System.err.println("Channel is not found.");
-                break;
-            }
+        try {
+            User connectionUser = getUser(connection);
 
-            // set server data and add to messages
-            message.setServerDate(new Date());
-            channel.getMessages().add(message);
+            switch (command.getType()) {
+            case CHANNEL_JOIN:
+                Channel channel = getChannel(command.getLong("channelId"));
 
-            buildCommand(CommandType.CHANNEL_MESSAGE)
-                .addData("message", message)
-                .sendToChannel(channel);
-        default:
-            break;
+                requestChannelEnter(channel, connectionUser);
+                break;
+            case CHANNEL_LEAVE:
+                channel = getChannel(command.getLong("channelId"));
+
+                removeUserFromChannel(channel, connectionUser);
+                break;
+            case CHANNEL_MESSAGE:
+                ChatMessage chatMessage = (ChatMessage) command.get("message");
+                checkValue(chatMessage.getChannel(), "CHANNEL_MESSAGE.message.channel");
+                long id = chatMessage.getChannel().getChannelId();
+                channel = getChannel(id);
+
+                // set server data and add to messages
+                chatMessage.setServerDate(new Date());
+                chatMessage.setAuthor(connectionUser);
+                channel.getMessages().add(chatMessage);
+
+                buildCommand(CommandType.CHANNEL_MESSAGE)
+                    .addData("message", chatMessage)
+                    .sendToChannel(channel);
+                break;
+            case USER_ADD_CONTACT:
+                User contactToAdd;
+                if (command.contains("userId")) {
+                    contactToAdd = getUser(command.getLong("userId"));
+                } else if (command.contains("username")) {
+                    contactToAdd = getUser(command.getString("username"));
+                } else {
+                    throw new CommandProcessorChatException("Command %1 should have userId or username.", command.getType());
+                }
+
+                if (connectionUser.getContacts().contains(contactToAdd)) {
+                    sendFailure(command, connectionUser, "User is already present in contacts.");
+                } else {
+                    // add user to contacts
+                    connectionUser.getContacts().add(contactToAdd);
+
+                    buildCommand(CommandType.USER_ADD_CONTACT)
+                        .addData("user", contactToAdd)
+                        .sendToUser(connectionUser);
+                }
+                break;
+            case USER_REMOVE_CONTACT:
+                User contactToRemove = getUser(command.getLong("userId"));
+                if (connectionUser.getContacts().contains(contactToRemove)) {
+                    // remove user from contacts
+                    connectionUser.getContacts().remove(contactToRemove);
+
+                    buildCommand(CommandType.USER_REMOVE_CONTACT)
+                        .addData("user", contactToRemove)
+                        .sendToUser(connectionUser);
+                } else {
+                    sendFailure(command, connectionUser, "User is not present in contacts.");
+                }
+                break;
+            case USER_MESSAGE:
+                PrivateMessage privateMessage = (PrivateMessage) command.get("message");
+                checkValue(privateMessage.getRecipient(), "USER_MESSAGE.message.recipient");
+
+                // set server data and add to messages
+                privateMessage.setServerDate(new Date());
+                privateMessage.setAuthor(connectionUser);
+
+                buildCommand(CommandType.USER_MESSAGE)
+                    .addData("message", privateMessage)
+                    .sendToUser(privateMessage.getRecipient());
+                break;
+            default:
+                Log.warn(this, "Command %1 is ignored.", command.getType());
+                break;
+            }
+        } catch (CommandContentException e) {
+            // TODO we can send failure here for debug
+            // problem with command content
+            Log.error(this, e);
+        } catch (CommandProcessorChatException e) {
+            // TODO we can send failure here for debug
+            // local exception, mainly because validation
+            Log.error(this, e);
         }
     }
 
     @Override
     public boolean canHandle(Exception e) {
-        // TODO Auto-generated method stub
         return false;
+    }
+
+    protected void sendFailure(Command command, User user, String message) {
+        buildCommand(CommandType.FAILURE)
+            .addData("message", message)
+            .addData("commandId", command.getId())
+            .addData("commandType", command.getType())
+            .sendToUser(user);
     }
 
     protected void sendCommandToUser(User user, Command command) {
         ClientConnection connection = usersToConnection.get(user);
-
-        sendCommand(connection, command);
+        if (connection == null) {
+            Log.warn(this, "User %1 has no connection.", user.getUserId());
+        } else {
+            sendCommand(connection, command);
+        }
     }
 
     protected void sendCommandToChannel(Channel channel, Command command) {
@@ -229,19 +281,50 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         }
     }
 
-    private User getUser(long userId) {
+    private User getUser(long userId) throws CommandProcessorChatException {
         User user = onlineUsers.get(userId);
+        if (user == null) {
+            throw new CommandProcessorChatException("User is not present with ID %1.", userId);
+        }
         return user;
     }
 
-    private Channel getChannel(long channelId) {
-        return channels.get(channelId);
+    private User getUser(ClientConnection connection) throws CommandProcessorChatException {
+        User user = (User) connection.getTag();
+        if (user == null) {
+            throw new CommandProcessorChatException("User is not set for '%1'.", connection);
+        }
+        return user;
     }
-    
+
+    private Channel getChannel(long channelId) throws CommandProcessorChatException {
+        Channel channel = channels.get(channelId);
+        if (channel == null) {
+            throw new CommandProcessorChatException("Channel is not present with ID %1.", channelId);
+        }
+        return channel;
+    }
+
+    private User getUser(String name) throws CommandProcessorChatException {
+        for (User user : onlineUsers.values()) {
+            if (user.getUsername().equalsIgnoreCase(name)) {
+                return user;
+            }
+        }
+
+        throw new CommandProcessorChatException("User is not present with name %1.", name);
+    }
+
+    private static void checkValue(Object value, String name) throws CommandProcessorChatException {
+        if (value == null) {
+            throw new CommandProcessorChatException("Value '%1' in command is not set.", name);
+        }
+    }
+
     private CommandBuilder buildCommand(CommandType type) {
         return new CommandBuilder(type);
     }
-    
+
     public class CommandBuilder {
         private Command command;
 
