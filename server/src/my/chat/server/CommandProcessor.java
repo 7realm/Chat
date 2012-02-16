@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import my.chat.exceptions.ChatException;
@@ -15,6 +14,7 @@ import my.chat.exceptions.ChatIOException;
 import my.chat.exceptions.ChatNotImplementedException;
 import my.chat.model.Channel;
 import my.chat.model.Channel.ChannelType;
+import my.chat.model.ChatMessage;
 import my.chat.model.PrivateMessage;
 import my.chat.model.User;
 import my.chat.network.ClientConnection;
@@ -38,8 +38,9 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         return INSTANCE;
     }
 
-    private final Map<User, ClientConnection> users = Collections.synchronizedMap(new HashMap<User, ClientConnection>());
-    private final List<Channel> channels = Collections.synchronizedList(new ArrayList<Channel>());
+    private final Map<User, ClientConnection> usersToConnection = Collections.synchronizedMap(new HashMap<User, ClientConnection>());
+    private final Map<Long, Channel> channels = Collections.synchronizedMap(new HashMap<Long, Channel>());
+    private final Map<Long, User> onlineUsers = Collections.synchronizedMap(new HashMap<Long, User>());
     private int channelId;
 
     public void start() {
@@ -50,8 +51,9 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
     public void acceptConnection(ClientConnection connection, User user) {
         // associate user with connection
-        users.put(user, connection);
+        usersToConnection.put(user, connection);
         connection.setTag(user);
+        onlineUsers.put(user.getUserId(), user);
 
         // reassign connection to server
         connection.setOnCloseListener(this);
@@ -62,7 +64,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         buildCommand(CommandType.CONNECTED)
             .addData("user", user)
             .addData("offlineMessages", new ArrayList<PrivateMessage>())
-            .addData("publicChannels", channels)
+            .addData("publicChannels", new ArrayList<Channel>(channels.values()))
             .sendToUser(user);
 
         buildCommand(CommandType.USER_ENTER)
@@ -72,7 +74,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
     protected Channel createChannel(String name, ChannelType type) {
         Channel channel = new Channel(channelId++, name, type, new Date());
-        channels.add(channel);
+        channels.put(channel.getChannelId(), channel);
         return channel;
     }
 
@@ -96,23 +98,24 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     }
 
     protected void removeUserFromChannel(Channel channel, User user) {
-        channel.getUsers().remove(user);
-
         buildCommand(CommandType.CHANNEL_LEAVE)
             .addData("userId", user.getUserId())
             .addData("channelId", channel.getChannelId())
             .sendToChannel(channel);
+        
+        channel.getUsers().remove(user);
     }
 
     @Override
     public void onClose(ClientConnection connection, Exception occurredException) {
         // clear association
         User user = (User) connection.getTag();
-        users.remove(user);
+        usersToConnection.remove(user);
         connection.setTag(null);
+        onlineUsers.remove(user.getUserId());
 
         // remove from all channels
-        for (Channel channel : channels) {
+        for (Channel channel : channels.values()) {
             if (channel.getUsers().contains(user)) {
                 removeUserFromChannel(channel, user);
             }
@@ -129,6 +132,60 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         checkNotNull("byte", bytes);
 
         Command command = ParserService.getInstance().unmarshall(bytes);
+
+        switch (command.getType()) {
+        case CHANNEL_JOIN:
+            User user = getUser(command.getLong("userId"));
+            Channel channel = getChannel(command.getLong("channelId"));
+            if (user == null) {
+                // TODO remove sys err
+                System.err.println("User is not found.");
+                break;
+            }
+            if (channel == null) {
+                System.err.println("Channel is not found.");
+                break;
+            }
+            requestChannelEnter(channel, user);
+            break;
+        case CHANNEL_LEAVE:
+            user = getUser(command.getLong("userId"));
+            channel = getChannel(command.getLong("channelId"));
+            if (user == null) {
+                // TODO remove sys err
+                System.err.println("User is not found.");
+                break;
+            }
+            if (channel == null) {
+                System.err.println("Channel is not found.");
+                break;
+            }
+            removeUserFromChannel(channel, user);
+            break;
+        case CHANNEL_MESSAGE:
+            // TODO check
+            ChatMessage message = (ChatMessage) command.get("message");
+            if (message == null) {
+                System.err.println("Message is not found.");
+                break;
+            }
+            long id = message.getChannel().getChannelId();
+            channel = getChannel(id);
+            if (channel == null) {
+                System.err.println("Channel is not found.");
+                break;
+            }
+
+            // set server data and add to messages
+            message.setServerDate(new Date());
+            channel.getMessages().add(message);
+
+            buildCommand(CommandType.CHANNEL_MESSAGE)
+                .addData("message", message)
+                .sendToChannel(channel);
+        default:
+            break;
+        }
     }
 
     @Override
@@ -138,7 +195,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     }
 
     protected void sendCommandToUser(User user, Command command) {
-        ClientConnection connection = users.get(user);
+        ClientConnection connection = usersToConnection.get(user);
 
         sendCommand(connection, command);
     }
@@ -150,7 +207,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     }
 
     protected void sendCommandToAll(Command command) {
-        for (Iterator<ClientConnection> i = users.values().iterator(); i.hasNext();) {
+        for (Iterator<ClientConnection> i = usersToConnection.values().iterator(); i.hasNext();) {
             ClientConnection connection = i.next();
 
             sendCommand(connection, command);
@@ -172,10 +229,19 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         }
     }
 
+    private User getUser(long userId) {
+        User user = onlineUsers.get(userId);
+        return user;
+    }
+
+    private Channel getChannel(long channelId) {
+        return channels.get(channelId);
+    }
+    
     private CommandBuilder buildCommand(CommandType type) {
         return new CommandBuilder(type);
     }
-
+    
     public class CommandBuilder {
         private Command command;
 

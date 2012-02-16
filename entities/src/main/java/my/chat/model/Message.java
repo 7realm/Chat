@@ -27,6 +27,10 @@ public abstract class Message implements Serializable {
 	
 	/** The message, to which message is reply. Can be null if this is new message. */
 	private Message replyTo;
+	
+	protected Message() {
+	    
+	}
 
 	/**
 	 * @param messageId

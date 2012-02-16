@@ -61,6 +61,7 @@ public class Server {
 
 	public void start() throws ChatIOException {
 		networkService.start();
+		CommandProcessor.getInstance().start();
 		ParserService.getInstance().start();
 	}
 

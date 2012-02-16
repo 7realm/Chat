@@ -75,6 +75,15 @@ public class Command {
         
         throw Log.error(this, new ChatRuntimeException("Command '%1' data item '%2' is not string.", type, name));
     }
+    
+    public long getLong(String name) {
+        Object value = get(name);
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        
+        throw Log.error(this, new ChatRuntimeException("Command '%1' data item '%2' is not long.", type, name));
+    }
 
     @Override
     public String toString() {
@@ -139,10 +148,16 @@ public class Command {
 
         /** For private message between users. */
         USER_MESSAGE,
+        
+        /** Request to add user to contacts. */
+        USER_ADD_CONTACT,
+        
+        /** Request to remove user from contacts. */
+        USER_REMOVE_CONTACT,
 
         /** This command is sent when user successfully connected. */
         CONNECTED,
-
+        
         /** User entered channel. */
         CHANNEL_JOIN,
 
@@ -150,6 +165,9 @@ public class Command {
         CHANNEL_LEAVE,
 
         /** For public message in chat channel. */
-        CHANNEL_MESSAGE
+        CHANNEL_MESSAGE,
+        
+        /** General failure message. */
+        FAILURE,
     }
 }

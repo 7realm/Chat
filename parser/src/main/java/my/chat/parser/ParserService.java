@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -52,14 +53,18 @@ import org.xml.sax.SAXException;
  * @author 7realm
  */
 public final class ParserService {
+    private static final String NODE_ENUM = "Enum";
     private static final String NODE_LIST = "List";
     private static final String NODE_OBJECT = "Object";
     private static final String NODE_BOOL = "Boolean";
     private static final String NODE_LONG = "Long";
     private static final String NODE_INTEGER = "Integer";
     private static final String NODE_STRING = "String";
+    private static final String NODE_DATE = "Date";
+    private static final String NODE_NULL = "Null";
 
     private static final ParserService INSTANCE = new ParserService();
+
     private Transformer transformer;
     private DocumentBuilder documentBuilder;
 
@@ -116,7 +121,10 @@ public final class ParserService {
                 Result result = new StreamResult(writer);
                 Source source = new DOMSource(xmlDoc);
                 transformer.transform(source, result);
-                return writer.toString().getBytes(ParserConfig.CHARSET);
+                String xml = writer.toString();
+
+                Log.debug(this, "Sending XML: %1", xml);
+                return xml.getBytes(ParserConfig.CHARSET);
             } catch (TransformerException e) {
                 throw Log.error(this, new ParserChatException("Failed to write XML document to string. Command: %1.", e, command));
             } catch (UnsupportedEncodingException e) {
@@ -131,7 +139,9 @@ public final class ParserService {
 
     private Element marshall(Document xmlDoc, String name, Object value) throws ParserChatException {
         Element result;
-        if (value instanceof String) {
+        if (value == null) {
+            result = xmlDoc.createElement(NODE_NULL);
+        } else if (value instanceof String) {
             result = xmlDoc.createElement(NODE_STRING);
             setAttribute(result, "value", value);
         } else if (value instanceof Integer) {
@@ -153,6 +163,15 @@ public final class ParserService {
                 Element xmlListItem = marshall(xmlDoc, name + "[" + i + "]", listItem);
                 result.appendChild(xmlListItem);
             }
+        } else if (value instanceof Enum) {
+            Enum<?> enumValue = (Enum<?>) value;
+            result = xmlDoc.createElement(NODE_ENUM);
+            setAttribute(result, "value", enumValue.name());
+            setAttribute(result, "class", enumValue.getClass().getName());
+        } else if (value instanceof Date) {
+            Date date = (Date) value;
+            result = xmlDoc.createElement(NODE_DATE);
+            setAttribute(result, "value", date.getTime());
         } else {
             // use object with reflections
             Class<? extends Object> clazz = value.getClass();
@@ -166,23 +185,28 @@ public final class ParserService {
             setAttribute(result, "class", clazz.getName());
 
             // process all annotated fields
-            for (Field field : clazz.getDeclaredFields()) {
-                if (!field.isAnnotationPresent(FieldDataIgnore.class) && !Modifier.isStatic(field.getModifiers())) {
-                    field.setAccessible(true);
+            while (clazz.getSuperclass() != null) {
+                for (Field field : clazz.getDeclaredFields()) {
+                    if (!field.isAnnotationPresent(FieldDataIgnore.class) && !Modifier.isStatic(field.getModifiers())) {
+                        field.setAccessible(true);
 
-                    try {
-                        String fieldName = field.getName();
-                        Object fieldValue = field.get(value);
+                        try {
+                            String fieldName = field.getName();
+                            Object fieldValue = field.get(value);
 
-                        // add field element
-                        Element xmlField = marshall(xmlDoc, fieldName, fieldValue);
-                        result.appendChild(xmlField);
-                    } catch (IllegalArgumentException e) {
-                        Log.warn(this, e, "Unexpected exception.");
-                    } catch (IllegalAccessException e) {
-                        Log.warn(this, e, "Unexpected exception.");
+                            // add field element
+                            Element xmlField = marshall(xmlDoc, fieldName, fieldValue);
+                            result.appendChild(xmlField);
+                        } catch (IllegalArgumentException e) {
+                            Log.warn(this, e, "Unexpected exception.");
+                        } catch (IllegalAccessException e) {
+                            Log.warn(this, e, "Unexpected exception.");
+                        }
                     }
                 }
+
+                // need to handle all fields recursively
+                clazz = clazz.getSuperclass();
             }
         }
 
@@ -248,7 +272,9 @@ public final class ParserService {
         String tagName = xml.getTagName();
 
         Object result;
-        if (NODE_STRING.equals(tagName)) {
+        if (NODE_NULL.equals(tagName)) {
+            result = null;
+        } else if (NODE_STRING.equals(tagName)) {
             result = getString(xml, "value");
         } else if (NODE_INTEGER.equals(tagName)) {
             result = getInteger(xml, "value");
@@ -272,6 +298,20 @@ public final class ParserService {
 
             // return list
             result = list;
+        } else if (NODE_ENUM.equals(tagName)) {
+            String className = getString(xml, "class");
+            try {
+                Class<Enum> enumClass = (Class<Enum>) Class.forName(className);
+                String value = getString(xml, "value");
+                result = Enum.valueOf(enumClass, value);
+            } catch (ClassCastException e) {
+                throw Log.error(this, new ParserChatException("Failed to cast enum '%1', passed in xml.", e, className));
+            } catch (ClassNotFoundException e) {
+                throw Log.error(this, new ParserChatException("Failed to find enum '%1', passed in xml.", e, className));
+            }
+        } else if (NODE_DATE.equals(tagName)) {
+            long time = getLong(xml, "value");
+            result = new Date(time);
         } else if (NODE_OBJECT.equals(tagName)) {
             String className = getString(xml, "class");
             try {
@@ -289,7 +329,7 @@ public final class ParserService {
                         String name = getString(element, "name");
 
                         // set field value
-                        Field field = clazz.getDeclaredField(name);
+                        Field field = getField(clazz, name);
                         field.setAccessible(true);
                         field.set(result, value);
                     }
@@ -310,6 +350,18 @@ public final class ParserService {
         }
 
         return result;
+    }
+
+    private static Field getField(Class<?> clazz, String name) throws NoSuchFieldException {
+        try {
+            return clazz.getDeclaredField(name);
+        } catch (NoSuchFieldException e) {
+            if (clazz.getSuperclass() != null) {
+                return getField(clazz.getSuperclass(), name);
+            }
+            
+            throw e;
+        }
     }
 
     private static long getLong(Element xml, String name) throws ParserChatException {
