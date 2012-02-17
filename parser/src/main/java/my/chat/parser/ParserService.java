@@ -20,6 +20,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -81,6 +82,7 @@ public final class ParserService {
             // create XML transformer
             TransformerFactory factory = TransformerFactory.newInstance();
             transformer = factory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
             // create XML document builder
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();

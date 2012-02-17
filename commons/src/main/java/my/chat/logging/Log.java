@@ -2,12 +2,15 @@ package my.chat.logging;
 
 import my.chat.commons.Helper;
 
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
 public class Log {
     private static final Logger LOGGER;
 
     static {
+        BasicConfigurator.configure();
+
         LOGGER = Logger.getLogger("chat");
         // ConsoleAppender consoleAppender = new ConsoleAppender();
         // consoleAppender.setThreshold(Priority.ERROR);
