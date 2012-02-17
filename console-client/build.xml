@@ -1,18 +1,54 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project name="chat.console-client" default="create_run_jar">
+<project name="chat.console-client" default="">
+	
+	<property file="../chat.properties" />
+	<property name="log4j" value="log4j-1.2.16.jar" />
 
-	<target name="create_run_jar">
-		<jar destfile="D:/workspace/chat/console-client/target/client.jar">
+	<target name="clean">
+		<delete failonerror="no" includeemptydirs="true">
+			<fileset dir="${build}/classes" includes="**/*" />
+		</delete>
+	</target>
+
+
+	<target name="compile">
+		<subant>
+			<fileset dir="../commons/" includes="build.xml" />
+			<fileset dir="../entities/" includes="build.xml" />
+			<fileset dir="../network/" includes="build.xml" />
+			<fileset dir="../parser/" includes="build.xml" />
+			<fileset dir="../db_client/" includes="build.xml" />
+			<fileset dir="../db/" includes="build.xml" />
+			<target name="compile" />
+		</subant>
+
+		<mkdir dir="${build}/classes" />
+		<javac srcdir="${src}" destdir="${build}/classes">
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="../${ear.name}/content/">
+					<include name="lib/*.jar" />
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="create.jar" depends="clean, compile">
+		<jar destfile="target/client.jar">
 			<manifest>
-				<attribute name="Class-Path" value="./log4j-1.2.16.jar" />
+				<attribute name="Class-Path" value="${log4j}" />
 				<attribute name="Main-Class" value="my.chat.client.console.ConsoleClient" />
 			</manifest>
-			<fileset dir="D:/workspace/chat/console-client/bin" />
-			<fileset dir="D:/workspace/chat/commons/bin" />
-			<fileset dir="D:/workspace/chat/network/bin" />
-			<fileset dir="D:/workspace/chat/entities/bin" />
-			<fileset dir="D:/workspace/chat/parser/bin" />
-			<zipfileset dir="D:\workspace\chat\.lib" includes="log4j-1.2.16.jar" />
+
+			<fileset dir="${build}/classes" />
+			<fileset dir="../commons/${build}/classes" />
+			<fileset dir="../network/${build}/classes" />
+			<fileset dir="../entities/${build}/classes" />
+			<fileset dir="../parser/${build}/classes" />
 		</jar>
+		<copy file="../.lib/${log4j}" tofile="target/${log4j}" />
 	</target>
 </project>

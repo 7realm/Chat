@@ -268,6 +268,7 @@ public final class ParserService {
         }
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private Object unmarshall(Element xml) throws ParserChatException {
         String tagName = xml.getTagName();
 

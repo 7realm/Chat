@@ -19,7 +19,7 @@ public class ChatMessage extends Message {
 	/** Serial version UID. */
 	private static final long serialVersionUID = 7949962399207029490L;
 
-	/** The channel ID, where this message is sent. */
+	/** The channel, where this message is sent. */
 	private Channel channel;
 	
 	public ChatMessage() {
