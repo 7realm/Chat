@@ -21,14 +21,14 @@ import my.chat.model.User;
  * TODO do we need logging.
  */
 @Stateful(mappedName = "db_service", name = "db_ejb")
-public class DatabaseService implements DatabaseServiceRemote, DatabaseServiceLocal {
+public class DatabaseServiceBean implements DatabaseServiceRemote, DatabaseServiceLocal {
     @PersistenceContext(unitName = "model")
     private EntityManager entityManager;
 
     /**
      * Default constructor.
      */
-    public DatabaseService() {
+    public DatabaseServiceBean() {
         // empty
     }
 
