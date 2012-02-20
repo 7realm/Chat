@@ -3,6 +3,8 @@ package my.chat.model;
 import java.io.Serializable;
 import java.util.Date;
 
+import my.chat.model.user.User;
+
 /**
  *  Communication message.
  */

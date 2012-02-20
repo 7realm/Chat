@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import my.chat.model.user.User;
 import my.chat.parser.ObjectData;
 
 /**

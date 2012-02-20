@@ -1,17 +1,11 @@
-package my.chat.model;
-
-import static my.chat.commons.ArgumentHelper.checkString;
-import static my.chat.model.commons.ModelHelper.memberAtLeastOne;
-import static my.chat.model.commons.ModelHelper.memberExist;
+package my.chat.model.user;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -23,7 +17,11 @@ import my.chat.parser.FieldDataIgnore;
 import my.chat.parser.ObjectData;
 
 /**
- * Data container for chat user.
+ * 
+ * <p>
+ * <b>Thread safe:</b> No.
+ * 
+ * @author 7realm
  */
 @NamedQueries({
     @NamedQuery(name = "loginUser", query = "SELECT u FROM User u WHERE u.username = :username AND u.password = :password"),
@@ -36,22 +34,19 @@ public class User implements ChatEntity {
 
     /** The user ID. */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(unique = true, nullable = false, name = "iduser")
     private long userId;
 
-    /** The user name. */
-    @Column(nullable = false, length = 50)
-    private String username;
+    /** The user nick name. */
+    private String nickname;
 
-    /** The user password. */
-    @Column(nullable = false, length = 50)
+    /** The credentials. */
+    @Embedded
     @FieldDataIgnore
-    private String password;
+    private UserCredentials userCredentials;
 
     /** The list of user's contacts. */
     @Transient
-    private List<User> contacts = new ArrayList<User>();
+    private List<UserContact> contacts = new ArrayList<UserContact>();
 
     /** List of user's statuses. */
     @Transient
@@ -62,47 +57,36 @@ public class User implements ChatEntity {
     }
 
     public User(String username, String password) {
-        this.username = username;
-        this.password = password;
+        nickname = username;
+        userCredentials = new UserCredentials(username, password);
     }
 
     public long getUserId() {
         return userId;
     }
 
-    public String getPassword() {
-        return password;
+    public String getNickname() {
+        return nickname;
     }
 
-    public String getUsername() {
-        return username;
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
-    public List<User> getContacts() {
-        memberExist(this, "contacts", contacts);
+    public UserCredentials getUserCredentials() {
+        return userCredentials;
+    }
 
+    public void setUserCredentials(UserCredentials userCredentials) {
+        this.userCredentials = userCredentials;
+    }
+
+    public List<UserContact> getContacts() {
         return contacts;
     }
 
-    public Status getLastStatus() {
-        memberExist(this, "statuses", statuses);
-        memberAtLeastOne(this, "statuses", statuses);
-
-        return statuses.get(statuses.size() - 1);
-    }
-
-    public void addStatus(String content) {
-        checkString("content", content);
-        memberExist(this, "statuses", statuses);
-
-        // add status with current date
-        statuses.add(new Status(content, new Date()));
-
-        // TODO notify
-    }
-
-    public void addContact(User user) {
-
+    public List<Status> getStatuses() {
+        return statuses;
     }
 
     /**

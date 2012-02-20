@@ -5,6 +5,8 @@ package my.chat.model;
 
 import java.util.Date;
 
+import my.chat.model.user.User;
+
 /**
  * Private peer-to-peer communication message between users.
  * <p>

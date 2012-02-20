@@ -13,7 +13,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 
-import my.chat.model.User;
+import my.chat.model.user.User;
 
 /**
  * Session Bean implementation class DatabaseService.
@@ -96,7 +96,7 @@ public class DatabaseServiceBean implements DatabaseServiceRemote, DatabaseServi
             entityManager.merge(user);
             entityManager.flush();
         } catch (PersistenceException e) {
-            throw new PersistanceChatException("Failed to update user '%1' at database.", e, user.getUsername());
+            throw new PersistanceChatException("Failed to update user '%1' at database.", e, user.getNickname());
         }
     }
 }

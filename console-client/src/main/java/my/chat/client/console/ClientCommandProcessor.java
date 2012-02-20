@@ -12,7 +12,8 @@ import my.chat.client.console.Instruction.Parameter;
 import my.chat.exceptions.ChatIOException;
 import my.chat.model.Channel;
 import my.chat.model.ChatMessage;
-import my.chat.model.User;
+import my.chat.model.user.User;
+import my.chat.model.user.UserContact;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandType;
@@ -125,7 +126,7 @@ public final class ClientCommandProcessor implements OnCommandListener {
                 currentUser = (User) command.get("user");
                 channels = (List<Channel>) command.get("publicChannels");
 
-                showInfo("Successfully logged in as %1.", currentUser.getUsername());
+                showInfo("Successfully logged in as %1.", currentUser.getNickname());
                 break;
             case CHANNEL_JOIN:
                 Channel channel = (Channel) command.get("channel");
@@ -214,17 +215,18 @@ public final class ClientCommandProcessor implements OnCommandListener {
             System.out.println("User is not logged in.");
         } else {
             // print user name
-            System.out.println(makeMessage("USER(%1): %2.", currentUser.getUserId(), currentUser.getUsername()));
+            System.out.println(makeMessage("USER(%1): %2.", currentUser.getUserId(), currentUser.getNickname()));
             System.out.println(MARKER);
 
             // print contacts
-            List<User> contacts = currentUser.getContacts();
+            List<UserContact> contacts = currentUser.getContacts();
             checkNotNull("contacts", contacts);
             if (contacts.size() == 0) {
                 System.out.println("No contacts.");
             } else {
-                for (User contact : contacts) {
-                    System.out.println(makeMessage("%1 <%2>", contact.getUserId(), contact.getUsername()));
+                for (UserContact contact : contacts) {
+                    checkNotNull("contact.user", contact.getUser());
+                    System.out.println(makeMessage("%1 <%2>", contact.getGivenName(), contact.getUser().getUserId()));
                 }
             }
             System.out.println(MARKER);
@@ -246,7 +248,7 @@ public final class ClientCommandProcessor implements OnCommandListener {
                 // print users
                 StringBuilder builder = new StringBuilder("Users: ");
                 for (User user : currentChannel.getUsers()) {
-                    builder.append(user.getUsername()).append(" ");
+                    builder.append(user.getNickname()).append(" ");
                 }
                 System.out.println(builder.toString());
 
@@ -256,13 +258,13 @@ public final class ClientCommandProcessor implements OnCommandListener {
 
                     if (message.getReplyTo() == null) {
                         System.out.println(makeMessage("[%1] <%2>: %3",
-                            message.getServerDate(), message.getAuthor().getUsername(), message.getContent()));
+                            message.getServerDate(), message.getAuthor().getNickname(), message.getContent()));
                     } else {
                         checkNotNull("message.replyTo.author", message.getReplyTo().getAuthor());
 
                         System.out.println(makeMessage("[%1] <%2>: %3\r\n       > %4: %5",
-                            message.getServerDate(), message.getAuthor().getUsername(), message.getContent(),
-                            message.getReplyTo().getAuthor().getUsername(), message.getReplyTo().getContent()));
+                            message.getServerDate(), message.getAuthor().getNickname(), message.getContent(),
+                            message.getReplyTo().getAuthor().getNickname(), message.getReplyTo().getContent()));
                     }
                 }
 

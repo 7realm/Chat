@@ -33,7 +33,7 @@ import javax.xml.transform.stream.StreamResult;
 import my.chat.commons.Helper;
 import my.chat.exceptions.ConfigurationChatException;
 import my.chat.logging.Log;
-import my.chat.model.User;
+import my.chat.model.user.User;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandData;
 import my.chat.network.Command.CommandType;

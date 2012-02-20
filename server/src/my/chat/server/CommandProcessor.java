@@ -18,7 +18,8 @@ import my.chat.model.Channel;
 import my.chat.model.Channel.ChannelType;
 import my.chat.model.ChatMessage;
 import my.chat.model.PrivateMessage;
-import my.chat.model.User;
+import my.chat.model.user.User;
+import my.chat.model.user.UserContact;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandType;
@@ -55,7 +56,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
     public void acceptConnection(ClientConnection connection, User user) throws SecurityChatException {
         if (onlineUsers.containsKey(user.getUserId())) {
-            throw new SecurityChatException("User %1 is already logged in.", user.getUsername());
+            throw new SecurityChatException("User %1 is already logged in.", user.getNickname());
         }
 
         // associate user with connection
@@ -189,7 +190,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
                     sendFailure(command, connectionUser, "User is already present in contacts.");
                 } else {
                     // add user to contacts
-                    connectionUser.getContacts().add(contactToAdd);
+                    connectionUser.getContacts().add(new UserContact(contactToAdd.getNickname(), contactToAdd));
 
                     buildCommand(CommandType.USER_ADD_CONTACT)
                         .addData("user", contactToAdd)
@@ -197,8 +198,18 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
                 }
                 break;
             case USER_REMOVE_CONTACT:
-                User contactToRemove = getUser(command.getLong("userId"));
+                long userId = command.getLong("userId");
+                User contactToRemove = getUser(userId);
                 if (connectionUser.getContacts().contains(contactToRemove)) {
+                    for (Iterator<UserContact> i = connectionUser.getContacts().iterator(); i.hasNext();) {
+                        UserContact userContact = i.next();
+                        if (userId == userContact.getUser().getUserId()) {
+                            i.remove();
+                            break;
+                        }
+
+                    }
+
                     // remove user from contacts
                     connectionUser.getContacts().remove(contactToRemove);
 
@@ -313,7 +324,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
     private User getUser(String name) throws CommandProcessorChatException {
         for (User user : onlineUsers.values()) {
-            if (user.getUsername().equalsIgnoreCase(name)) {
+            if (user.getNickname().equalsIgnoreCase(name)) {
                 return user;
             }
         }

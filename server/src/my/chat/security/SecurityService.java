@@ -9,7 +9,7 @@ import my.chat.db.SecurityChatException;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
 import my.chat.logging.Log;
-import my.chat.model.User;
+import my.chat.model.user.User;
 import my.chat.network.ClientConnection;
 import my.chat.network.Command;
 import my.chat.network.Command.CommandType;
@@ -79,7 +79,7 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
                     // check user name
                     user = databaseService.login(username, password);
 
-                    Log.info(this, "%1 is accepted for user %2.", connection, user.getUsername());
+                    Log.info(this, "%1 is accepted for user %2.", connection, user.getNickname());
 
                     // server should reassign connection to him
                     CommandProcessor.getInstance().acceptConnection(connection, user);

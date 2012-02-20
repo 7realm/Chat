@@ -12,7 +12,7 @@ import javax.naming.NamingException;
 import my.chat.db.DatabaseServiceRemote;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
-import my.chat.model.User;
+import my.chat.model.user.User;
 import my.chat.network.ClientConnection;
 import my.chat.network.NetworkService;
 import my.chat.parser.ParserService;

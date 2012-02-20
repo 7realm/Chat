@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import my.chat.model.PrivateMessage;
-import my.chat.model.User;
+import my.chat.model.user.User;
 import my.chat.network.Command.CommandType;
 
 public final class ParserConfig {

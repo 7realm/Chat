@@ -5,6 +5,7 @@ package my.chat.model;
 
 import java.util.Date;
 
+import my.chat.model.user.User;
 import my.chat.parser.ObjectData;
 
 /**
