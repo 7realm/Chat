@@ -4,7 +4,7 @@
 package my.chat.security;
 
 import static my.chat.commons.ArgumentHelper.checkNotNull;
-import my.chat.db.DatabaseServiceRemote;
+import my.chat.db.DatabaseService;
 import my.chat.db.SecurityChatException;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
@@ -32,9 +32,9 @@ import my.chat.server.CommandProcessor;
  * @author 7realm
  */
 public final class SecurityService implements OnCommandListener, OnConnectionListener, OnClientCloseListener, ExceptionHandler {
-    private final DatabaseServiceRemote databaseService;
+    private final DatabaseService databaseService;
 
-    public SecurityService(DatabaseServiceRemote databaseService) throws ChatException {
+    public SecurityService(DatabaseService databaseService) throws ChatException {
         this.databaseService = databaseService;
     }
 

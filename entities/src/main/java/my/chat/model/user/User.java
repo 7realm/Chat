@@ -64,6 +64,10 @@ public class User implements ChatEntity {
     public long getUserId() {
         return userId;
     }
+    
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
 
     public String getNickname() {
         return nickname;

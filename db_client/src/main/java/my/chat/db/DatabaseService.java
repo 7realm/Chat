@@ -17,7 +17,7 @@ public interface DatabaseService {
      * @param id
      * @return
      */
-    User getUser(int id);
+    User getUser(long id);
 
     /**
      * Check user credentials.

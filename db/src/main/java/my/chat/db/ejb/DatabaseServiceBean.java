@@ -1,4 +1,4 @@
-package my.chat.db;
+package my.chat.db.ejb;
 
 import static my.chat.commons.ArgumentHelper.checkInit;
 import static my.chat.commons.ArgumentHelper.checkNotNull;
@@ -13,6 +13,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 
+import my.chat.db.PersistanceChatException;
+import my.chat.db.SecurityChatException;
 import my.chat.model.user.User;
 
 /**
@@ -38,7 +40,7 @@ public class DatabaseServiceBean implements DatabaseServiceRemote, DatabaseServi
     }
 
     @Override
-    public User getUser(int id) {
+    public User getUser(long id) {
         Query query = entityManager.createQuery("select * from user where iduser = ?").setParameter(1, id).setMaxResults(1);
         return (User) query.getSingleResult();
     }

@@ -1,5 +1,6 @@
 package my.chat.logging;
 
+import my.chat.commons.FilePaths;
 import my.chat.commons.Helper;
 
 import org.apache.log4j.Logger;
@@ -9,7 +10,7 @@ public class Log {
     private static final Logger LOGGER;
     
     static {
-        PropertyConfigurator.configure("./conf/log4j.properties");
+        PropertyConfigurator.configure(FilePaths.LOG_PROPERTIES);
         
         LOGGER = Logger.getLogger("chat");
     }

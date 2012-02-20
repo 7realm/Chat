@@ -3,12 +3,10 @@
  */
 package my.chat.client.console;
 
-import static my.chat.commons.Helper.close;
-
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.Properties;
 
+import my.chat.commons.Helper;
 import my.chat.exceptions.ConfigurationChatException;
 
 /**
@@ -51,18 +49,18 @@ public class ConfigManager {
 
         defaults.setProperty(PROP_WAIT_TIMEOUT, "1000");
 
-        properties = new Properties(defaults);
-        InputStream input = null;
-        try {
-            input = new FileInputStream(CONF_FILE_PATH);
-            properties.load(input);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            close(input);
-        }
+        properties = initProperties();
 
         properties.list(System.out);
+    }
+
+    private static Properties initProperties() {
+        try {
+            return Helper.loadProperties(CONF_FILE_PATH, defaults);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return defaults;
+        }
     }
 
     public static String get(String name) {
