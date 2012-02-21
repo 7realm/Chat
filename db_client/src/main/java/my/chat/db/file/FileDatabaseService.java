@@ -33,7 +33,7 @@ import my.chat.model.user.UserCredentials;
  * @author 7realm
  */
 public class FileDatabaseService implements DatabaseService {
-    private static final String DATA_SPLITTER = "|";
+    private static final String DATA_SPLITTER = "\\|";
     private static final String EOL = System.getProperty("line.separator");
     private final Map<Long, User> database = Collections.synchronizedMap(new HashMap<Long, User>());
     private AtomicLong lastUserId = new AtomicLong(0);
@@ -73,9 +73,9 @@ public class FileDatabaseService implements DatabaseService {
                     database.put(user.getUserId(), user);
                 }
             } catch (IOException e) {
-                throw new PersistanceChatException("Failed to read data from file %1.", databaseFilename);
+                throw new PersistanceChatException("Failed to read data from file %1.", e, databaseFilename);
             } catch (NumberFormatException e) {
-                throw new PersistanceChatException("Failed to parse user id at file %1.", databaseFilename);
+                throw new PersistanceChatException("Failed to parse user id at file %1.", e, databaseFilename);
             } finally {
                 close(reader);
             }
@@ -140,7 +140,7 @@ public class FileDatabaseService implements DatabaseService {
                     + user.getUserCredentials().getPassword() + EOL);
             }
         } catch (IOException e) {
-            throw new PersistanceChatException("Failed to write data to file %1.", databaseFile.getAbsolutePath());
+            throw new PersistanceChatException("Failed to write data to file %1.", e, databaseFile.getAbsolutePath());
         } finally {
             close(writer);
         }

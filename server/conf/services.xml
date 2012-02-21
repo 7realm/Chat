@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<bean id="fileDatabaseServiceFactory" class="my.chat.db.file.FileDatabaseServiceFactory" init-method="init">
+		<property name="databaseFileName" value="./data/database" />
+	</bean>
+	
+	<bean id="ejbDatabaseServiceFactory" class="my.chat.db.ejb.EjbDatabaseServiceFactory" init-method="init">
+		<property name="jndiName" value="db_service" />
+	</bean>
+	
+	<bean id="memoryDatabaseServiceFactory" class="my.chat.db.memory.MemoryDatabaseService" />
+
+	<bean id="databaseService" factory-bean="ejbDatabaseServiceFactory" factory-method="buildService" />
+
+</beans>

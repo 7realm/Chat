@@ -24,8 +24,8 @@ import my.chat.parser.ObjectData;
  * @author 7realm
  */
 @NamedQueries({
-    @NamedQuery(name = "loginUser", query = "SELECT u FROM User u WHERE u.username = :username AND u.password = :password"),
-    @NamedQuery(name = "countUsersByName", query = "SELECT COUNT(u) FROM User u WHERE u.username = :username") })
+    @NamedQuery(name = "loginUser", query = "SELECT u FROM User u WHERE u.credentials.username = :username AND u.credentials.password = :password"),
+    @NamedQuery(name = "countUsersByName", query = "SELECT COUNT(u) FROM User u WHERE u.nickname = :username") })
 @Entity
 @Table(name = "user")
 @ObjectData
@@ -42,7 +42,7 @@ public class User implements ChatEntity {
     /** The credentials. */
     @Embedded
     @FieldDataIgnore
-    private UserCredentials userCredentials;
+    private UserCredentials credentials;
 
     /** The list of user's contacts. */
     @Transient
@@ -58,7 +58,7 @@ public class User implements ChatEntity {
 
     public User(String username, String password) {
         nickname = username;
-        userCredentials = new UserCredentials(username, password);
+        credentials = new UserCredentials(username, password);
     }
 
     public long getUserId() {
@@ -78,11 +78,11 @@ public class User implements ChatEntity {
     }
 
     public UserCredentials getUserCredentials() {
-        return userCredentials;
+        return credentials;
     }
 
-    public void setUserCredentials(UserCredentials userCredentials) {
-        this.userCredentials = userCredentials;
+    public void setUserCredentials(UserCredentials credentials) {
+        this.credentials = credentials;
     }
 
     public List<UserContact> getContacts() {

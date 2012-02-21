@@ -1,33 +1,45 @@
 package my.chat.server;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
+import my.chat.commons.FilePaths;
 import my.chat.db.DatabaseService;
-import my.chat.db.DatabaseServiceFactory;
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
-import my.chat.model.user.User;
-import my.chat.network.ClientConnection;
 import my.chat.network.NetworkService;
 import my.chat.parser.ParserService;
 import my.chat.security.SecurityService;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 public class Server {
     private final NetworkService networkService;
     private final SecurityService securityService;
     private final DatabaseService databaseService;
 
-    private final Map<User, ClientConnection> users = Collections.synchronizedMap(new HashMap<User, ClientConnection>());
 
     public Server() throws ChatException {
-        databaseService = DatabaseServiceFactory.getInstance();
+        try {
+            // init services
+            Resource resource = new FileSystemResource(FilePaths.SERVICES_CONFIG);
+            BeanFactory factory = new XmlBeanFactory(resource);
 
-        securityService = new SecurityService(databaseService);
+            databaseService = (DatabaseService) factory.getBean("databaseService");
 
-        networkService = NetworkService.getInstance();
-        networkService.setOnConnectionListener(securityService);
+            // databaseService = DatabaseServiceFactory.getInstance();
+
+            securityService = new SecurityService(databaseService);
+
+            networkService = NetworkService.getInstance();
+            networkService.setOnConnectionListener(securityService);
+
+        } catch (ClassCastException e) {
+            throw new ChatException("Failed to cast created service.", e);
+        } catch (BeansException e) {
+            throw new ChatException("Failed to create services.", e);
+        }
     }
 
     public void start() throws ChatIOException {

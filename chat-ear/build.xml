@@ -1,4 +1,4 @@
-<project name="chat.ear" default="" basedir=".">
+<project name="chat.ear" default="delpoy" basedir=".">
 
 	<property file="../chat.properties" />
 

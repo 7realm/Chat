@@ -3,6 +3,8 @@
  */
 package my.chat.db.ejb;
 
+import static my.chat.commons.ArgumentHelper.checkInit;
+
 import java.util.Hashtable;
 
 import javax.naming.Context;
@@ -21,7 +23,23 @@ import my.chat.exceptions.ChatException;
  * @author 7realm
  */
 public class EjbDatabaseServiceFactory extends DatabaseServiceFactory {
-    private static final String EJB_SERVICE_NAME = "db_service";
+    private String jndiName;
+
+    public EjbDatabaseServiceFactory() {
+        // TODO Auto-generated constructor stub
+    }
+
+    public String getJndiName() {
+        return jndiName;
+    }
+
+    public void setJndiName(String jndiName) {
+        this.jndiName = jndiName;
+    }
+    
+    protected void init() {
+        checkInit("jndiName", jndiName);
+    }
 
     /**
      * 
@@ -37,7 +55,7 @@ public class EjbDatabaseServiceFactory extends DatabaseServiceFactory {
             jndiProperties.put(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
             final Context context = new InitialContext(jndiProperties);
 
-            return (DatabaseServiceRemote) context.lookup(EJB_SERVICE_NAME);
+            return (DatabaseServiceRemote) context.lookup(jndiName);
         } catch (NamingException e) {
             throw new ChatException("Failed to initialize database service.", e);
         }

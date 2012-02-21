@@ -24,7 +24,6 @@
 	<target name="build" depends="clean, compile">
 		<jar destfile="../${ear.name}/content/lib/${jar.name}">
 			<fileset dir="${build}/classes" />
-			<fileset dir="conf" />
 		</jar>
 	</target>
 

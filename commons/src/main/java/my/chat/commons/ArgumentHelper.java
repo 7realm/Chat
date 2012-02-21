@@ -49,7 +49,7 @@ public final class ArgumentHelper {
 
     public static void checkInit(String fieldName, Object fieldValue) {
         if (fieldValue == null) {
-            throw new ConfigurationChatException("Field '" + fieldName + "' is not set.");
+            throw new ConfigurationChatException("Field '%1' is not set.", fieldName);
         }
     }
 }

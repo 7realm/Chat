@@ -7,5 +7,8 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/db_client"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/entities"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/parser"/>
+	<classpathentry kind="lib" path="lib/org.springframework.beans-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/org.springframework.core-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/org.springframework.asm-3.1.1.RELEASE.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
