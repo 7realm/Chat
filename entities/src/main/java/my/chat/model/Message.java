@@ -2,7 +2,9 @@ package my.chat.model;
 
 import java.util.Date;
 
+import my.chat.model.commons.ChatEntity;
 import my.chat.model.commons.ChatIdEntity;
+import my.chat.model.commons.UpdateChatException;
 import my.chat.model.user.User;
 
 /**
@@ -52,9 +54,6 @@ public abstract class Message extends ChatIdEntity {
         setId(messageId);
     }
 
-    /**
-     * @return
-     */
     public User getAuthor() {
         return author;
     }
@@ -63,45 +62,48 @@ public abstract class Message extends ChatIdEntity {
         this.author = author;
     }
 
-    /**
-     * @return the authorDate
-     */
     public Date getAuthorDate() {
         return authorDate;
     }
+    
+    public void setAuthorDate(Date authorDate) {
+        this.authorDate = authorDate;
+    }
 
-    /**
-     * @return the serverDate
-     */
     public Date getServerDate() {
         return serverDate;
     }
-
-    /**
-     * @param serverDate the serverDate to set
-     */
+    
     public void setServerDate(Date serverDate) {
         this.serverDate = serverDate;
     }
 
-    /**
-     * @return the content
-     */
     public String getContent() {
         return content;
     }
 
-    /**
-     * @param content the content to set
-     */
     public void setContent(String content) {
         this.content = content;
     }
 
-    /**
-     * @return the replyTo
-     */
     public Message getReplyTo() {
         return replyTo;
+    }
+    
+    public void setReplyTo(Message replyTo) {
+        this.replyTo = replyTo;
+    }
+    
+    @Override
+    public void update(ChatEntity newEntity) throws UpdateChatException {
+        super.update(newEntity);
+        
+        Message newMessage = (Message) newEntity;
+        
+        setAuthor(newMessage.getAuthor());
+        setAuthorDate(newMessage.getAuthorDate());
+        setServerDate(newMessage.getServerDate());
+        setContent(newMessage.getContent());
+        setReplyTo(newMessage.getReplyTo());
     }
 }

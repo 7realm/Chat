@@ -4,7 +4,7 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
-public abstract class ChatIdEntity implements ChatEntity {
+public abstract class ChatIdEntity extends ChatEntity {
     private static final long serialVersionUID = -3813434674711319204L;
 
     @Id
@@ -20,6 +20,17 @@ public abstract class ChatIdEntity implements ChatEntity {
 
     public void setId(long id) {
         this.id = id;
+    }
+    
+    @Override
+    public void update(ChatEntity newEntity) throws UpdateChatException {
+        super.update(newEntity);
+        
+        // check id of updating entities
+        long newId = ((ChatIdEntity) newEntity).getId();
+        if (id != newId) {
+            throw new UpdateChatException("Updating class with incorrect id %1, expected %2.", newId, id);
+        }
     }
 
     /**

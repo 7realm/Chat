@@ -3,6 +3,7 @@ package my.chat.model.user;
 import javax.persistence.Embeddable;
 
 import my.chat.model.commons.ChatEntity;
+import my.chat.model.commons.UpdateChatException;
 
 /**
  * User credentials that will store login information in database.
@@ -12,7 +13,7 @@ import my.chat.model.commons.ChatEntity;
  * @author 7realm
  */
 @Embeddable
-public class Credentials implements ChatEntity {
+public class Credentials extends ChatEntity {
     private static final long serialVersionUID = 8700004254749555640L;
 
     /** The login username. */
@@ -57,5 +58,15 @@ public class Credentials implements ChatEntity {
      */
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public void update(ChatEntity newEntity) throws UpdateChatException {
+        super.update(newEntity);
+
+        Credentials newCredentials = (Credentials) newEntity;
+
+        setUsername(newCredentials.getUsername());
+        setPassword(newCredentials.getPassword());
     }
 }

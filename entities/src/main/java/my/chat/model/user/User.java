@@ -10,7 +10,9 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import my.chat.model.commons.ChatEntity;
 import my.chat.model.commons.ChatIdEntity;
+import my.chat.model.commons.UpdateChatException;
 import my.chat.parser.FieldDataIgnore;
 import my.chat.parser.ObjectData;
 
@@ -77,5 +79,18 @@ public class User extends ChatIdEntity {
 
     public List<Status> getStatuses() {
         return statuses;
+    }
+    
+    @Override
+    public void update(ChatEntity newEntity) throws UpdateChatException {
+        super.update(newEntity);
+        
+        User newUser = (User) newEntity;
+        
+       setNickname(newUser.getNickname());
+       setCredentials(newUser.getCredentials());
+
+       contacts = newUser.getContacts();
+       statuses = newUser.getStatuses();
     }
 }

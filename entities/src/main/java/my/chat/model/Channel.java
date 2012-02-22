@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import my.chat.model.commons.ChatEntity;
 import my.chat.model.commons.ChatIdEntity;
+import my.chat.model.commons.UpdateChatException;
 import my.chat.model.user.User;
 import my.chat.parser.ObjectData;
 
@@ -51,42 +53,60 @@ public class Channel extends ChatIdEntity {
 
         setId(channelId);
     }
-
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @return the createDate
-     */
-    public Date getCreateDate() {
-        return createDate;
-    }
-
-    /**
-     * @return the users
-     */
-    public List<User> getUsers() {
-        return users;
-    }
-
-    /**
-     * @return the messages
-     */
-    public List<ChatMessage> getMessages() {
-        return messages;
-    }
-
-    /**
-     * @return
-     */
+    
     public ChannelType getType() {
         return type;
     }
+    
+    public void setType(ChannelType type) {
+        this.type = type;
+    }
 
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+    
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+    
+    public List<ChatMessage> getMessages() {
+        return messages;
+    }
+    
+    @Override
+    public void update(ChatEntity newEntity) throws UpdateChatException {
+        super.update(newEntity);
+
+        Channel newChannel = (Channel) newEntity;
+        
+        setType(newChannel.getType());
+        setName(newChannel.getName());
+        setCreateDate(newChannel.getCreateDate());
+        
+        users = newChannel.getUsers();
+        messages = newChannel.getMessages();
+    }
+
+    /**
+     * Channel type. Private channels can be password protected.
+     * <p>
+     * <b>Thread safe:</b> No.
+     *
+     * @author 7realm
+     */
     public static enum ChannelType {
         PUBLIC, PRIVATE, PASSWORD
     }

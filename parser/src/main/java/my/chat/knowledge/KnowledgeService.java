@@ -10,13 +10,14 @@ public interface KnowledgeService {
      * @param id
      * @param clazz
      * @return
+     * @throws KnowledgeChatException 
      */
-    <T extends ChatIdEntity> T get(long id, Class<T> clazz);
+    <T extends ChatIdEntity> T get(long id, Class<T> clazz) throws KnowledgeChatException;
 
     /**
      * Update existing entity or add new.
      * 
      * @param entity
      */
-    void update(ChatIdEntity entity);
+    <T extends ChatIdEntity> void update(T entity) throws KnowledgeChatException;
 }

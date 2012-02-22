@@ -5,6 +5,8 @@ package my.chat.model;
 
 import java.util.Date;
 
+import my.chat.model.commons.ChatEntity;
+import my.chat.model.commons.UpdateChatException;
 import my.chat.model.user.User;
 
 /**
@@ -21,6 +23,10 @@ public class PrivateMessage extends Message {
 	/** The message recipient. */
 	private User recipient;
 
+	public PrivateMessage() {
+
+	}
+	
 	/**
 	 * @param messageId
 	 * @param authorId
@@ -35,10 +41,20 @@ public class PrivateMessage extends Message {
 		this.recipient = recipient;
 	}
 
-	/**
-	 * @return the recipient
-	 */
 	public User getRecipient() {
 		return recipient;
+	}
+	
+	public void setRecipient(User recipient) {
+        this.recipient = recipient;
+    }
+	
+	@Override
+	public void update(ChatEntity newEntity) throws UpdateChatException {
+	    super.update(newEntity);
+	    
+	    PrivateMessage newMessage = (PrivateMessage) newEntity;
+	    
+	    setRecipient(newMessage.getRecipient());
 	}
 }

@@ -3,6 +3,8 @@ package my.chat.model.user;
 import java.util.Date;
 
 import my.chat.model.commons.ChatEntity;
+import my.chat.model.commons.ChatIdEntity;
+import my.chat.model.commons.UpdateChatException;
 
 /**
  * User status, can only exist for User.
@@ -11,14 +13,18 @@ import my.chat.model.commons.ChatEntity;
  * 
  * @author 7realm
  */
-public class Status implements ChatEntity {
-    private static final long serialVersionUID = 1L;
+public class Status extends ChatIdEntity {
+    private static final long serialVersionUID = -3062473954080402482L;
 
     /** Status content. */
     private String content;
 
     /** Status create date. */
     private Date createDate;
+
+    public Status() {
+
+    }
 
     /**
      * @param content
@@ -29,18 +35,29 @@ public class Status implements ChatEntity {
         this.createDate = createDate;
     }
 
-    /**
-     * @return the content
-     */
     public String getContent() {
         return content;
     }
 
-    /**
-     * @return the createDate
-     */
     public Date getCreateDate() {
         return createDate;
     }
 
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    @Override
+    public void update(ChatEntity newEntity) throws UpdateChatException {
+        super.update(newEntity);
+
+        Status newStatus = (Status) newEntity;
+
+        setContent(newStatus.getContent());
+        setCreateDate(newStatus.getCreateDate());
+    }
 }

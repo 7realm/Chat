@@ -1,6 +1,8 @@
 package my.chat.model.user;
 
 import my.chat.model.commons.ChatEntity;
+import my.chat.model.commons.ChatIdEntity;
+import my.chat.model.commons.UpdateChatException;
 import my.chat.parser.ObjectData;
 
 /**
@@ -11,7 +13,7 @@ import my.chat.parser.ObjectData;
  * @author 7realm
  */
 @ObjectData
-public class Contact implements ChatEntity {
+public class Contact extends ChatIdEntity {
     private static final long serialVersionUID = -5759858935482127751L;
 
     /** The custom name of contact, only visible to contacts owner. */
@@ -63,5 +65,15 @@ public class Contact implements ChatEntity {
     public void setUser(User user) {
         this.user = user;
     }
+    
+    @Override
+    public void update(ChatEntity newEntity) throws UpdateChatException {
+        super.update(newEntity);
 
+        Contact newContact = (Contact) newEntity;
+        
+        setGivenName(newContact.getGivenName());
+        setUser(newContact.getUser());
+    }
+    
 }

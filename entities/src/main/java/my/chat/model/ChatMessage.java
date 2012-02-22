@@ -5,6 +5,8 @@ package my.chat.model;
 
 import java.util.Date;
 
+import my.chat.model.commons.ChatEntity;
+import my.chat.model.commons.UpdateChatException;
 import my.chat.model.user.User;
 import my.chat.parser.ObjectData;
 
@@ -17,7 +19,6 @@ import my.chat.parser.ObjectData;
  */
 @ObjectData
 public class ChatMessage extends Message {
-	/** Serial version UID. */
 	private static final long serialVersionUID = 7949962399207029490L;
 
 	/** The channel, where this message is sent. */
@@ -43,5 +44,18 @@ public class ChatMessage extends Message {
 
 	public Channel getChannel() {
 		return channel;
+	}
+	
+	public void setChannel(Channel channel) {
+        this.channel = channel;
+    }
+	
+	@Override
+	public void update(ChatEntity newEntity) throws UpdateChatException {
+	    super.update(newEntity);
+
+	    ChatMessage newMessage = (ChatMessage) newEntity;
+	    
+	    setChannel(newMessage.getChannel());
 	}
 }
