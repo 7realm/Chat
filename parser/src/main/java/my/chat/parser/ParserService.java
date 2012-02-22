@@ -34,9 +34,9 @@ import my.chat.commons.Helper;
 import my.chat.exceptions.ConfigurationChatException;
 import my.chat.logging.Log;
 import my.chat.model.user.User;
-import my.chat.network.Command;
-import my.chat.network.Command.CommandData;
-import my.chat.network.Command.CommandType;
+import my.chat.network.command.Command;
+import my.chat.network.command.Command.CommandData;
+import my.chat.network.command.Command.CommandType;
 
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;

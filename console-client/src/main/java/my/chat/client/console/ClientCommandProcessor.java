@@ -14,11 +14,11 @@ import my.chat.model.Channel;
 import my.chat.model.ChatMessage;
 import my.chat.model.user.User;
 import my.chat.model.user.UserContact;
-import my.chat.network.ClientConnection;
-import my.chat.network.Command;
-import my.chat.network.Command.CommandType;
-import my.chat.network.CommandContentException;
-import my.chat.network.OnCommandListener;
+import my.chat.network.command.Command;
+import my.chat.network.command.CommandContentException;
+import my.chat.network.command.Command.CommandType;
+import my.chat.network.connection.client.ClientConnection;
+import my.chat.network.connection.client.OnCommandListener;
 import my.chat.parser.ParserChatException;
 import my.chat.parser.ParserService;
 

@@ -1,4 +1,4 @@
-package my.chat.network;
+package my.chat.network.command;
 
 import java.io.Serializable;
 

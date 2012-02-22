@@ -2,6 +2,11 @@ package my.chat.network;
 
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
+import my.chat.exceptions.ExceptionHandler;
+import my.chat.network.connection.client.ClientConnection;
+import my.chat.network.connection.server.OnConnectionListener;
+import my.chat.network.connection.server.OnServerCloseListener;
+import my.chat.network.connection.server.ServerConnection;
 
 public class NetworkService implements OnConnectionListener, OnServerCloseListener, ExceptionHandler {
     private static final NetworkService INSTANCE = new NetworkService();
@@ -53,7 +58,6 @@ public class NetworkService implements OnConnectionListener, OnServerCloseListen
 
     @Override
     public boolean canHandle(Exception e) {
-        // TODO maybe we can allow to handle some exceptions
         return false;
     }
 

@@ -1,9 +1,11 @@
-package my.chat.network;
+package my.chat.network.command;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import my.chat.network.NetworkConfig;
 
 import static my.chat.commons.ArgumentHelper.checkString;
 

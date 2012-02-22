@@ -1,4 +1,4 @@
-package my.chat.network;
+package my.chat.network.connection.server;
 
 public interface OnServerCloseListener {
 	/**

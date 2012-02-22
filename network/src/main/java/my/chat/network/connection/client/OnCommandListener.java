@@ -1,4 +1,4 @@
-package my.chat.network;
+package my.chat.network.connection.client;
 
 import my.chat.exceptions.ChatException;
 

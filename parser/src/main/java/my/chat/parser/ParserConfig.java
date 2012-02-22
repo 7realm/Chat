@@ -6,7 +6,7 @@ import java.util.Map;
 
 import my.chat.model.PrivateMessage;
 import my.chat.model.user.User;
-import my.chat.network.Command.CommandType;
+import my.chat.network.command.Command.CommandType;
 
 public final class ParserConfig {
     public static final Map<CommandType, Map<String, Class<?>>> RULES = new HashMap<CommandType, Map<String, Class<?>>>();

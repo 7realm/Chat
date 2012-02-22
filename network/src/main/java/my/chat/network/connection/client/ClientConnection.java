@@ -1,4 +1,4 @@
-package my.chat.network;
+package my.chat.network.connection.client;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,7 +7,10 @@ import java.net.Socket;
 
 import my.chat.exceptions.ChatException;
 import my.chat.exceptions.ChatIOException;
+import my.chat.exceptions.ExceptionHandler;
 import my.chat.logging.Log;
+import my.chat.network.command.CommandHolder;
+import my.chat.network.connection.ConnectionState;
 
 import static my.chat.commons.ArgumentHelper.checkNotNull;
 import static my.chat.commons.ArgumentHelper.checkPositive;

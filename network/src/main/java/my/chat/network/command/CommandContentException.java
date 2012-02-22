@@ -1,7 +1,7 @@
 /**
  * 
  */
-package my.chat.network;
+package my.chat.network.command;
 
 import my.chat.exceptions.ChatException;
 
