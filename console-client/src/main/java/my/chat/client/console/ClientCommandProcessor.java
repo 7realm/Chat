@@ -13,10 +13,10 @@ import my.chat.exceptions.ChatIOException;
 import my.chat.model.Channel;
 import my.chat.model.ChatMessage;
 import my.chat.model.user.User;
-import my.chat.model.user.UserContact;
+import my.chat.model.user.Contact;
 import my.chat.network.command.Command;
-import my.chat.network.command.CommandContentException;
 import my.chat.network.command.Command.CommandType;
+import my.chat.network.command.CommandContentException;
 import my.chat.network.connection.client.ClientConnection;
 import my.chat.network.connection.client.OnCommandListener;
 import my.chat.parser.ParserChatException;
@@ -61,8 +61,8 @@ public final class ClientCommandProcessor implements OnCommandListener {
             }
 
             Command requestEnter = new Command(CommandType.CHANNEL_JOIN)
-                .addItem("userId", currentUser.getUserId())
-                .addItem("channelId", channel.getChannelId());
+                .addItem("userId", currentUser.getId())
+                .addItem("channelId", channel.getId());
 
             send(requestEnter, true);
             break;
@@ -72,8 +72,8 @@ public final class ClientCommandProcessor implements OnCommandListener {
             }
 
             Command cmd = new Command(CommandType.CHANNEL_LEAVE)
-                .addItem("userId", currentUser.getUserId())
-                .addItem("channelId", currentChannel.getChannelId());
+                .addItem("userId", currentUser.getId())
+                .addItem("channelId", currentChannel.getId());
 
             send(cmd, true);
             break;
@@ -133,14 +133,14 @@ public final class ClientCommandProcessor implements OnCommandListener {
                 User user = (User) command.get("user");
 
                 for (int i = 0; i < channels.size(); i++) {
-                    if (channels.get(i).getChannelId() == channel.getChannelId()) {
+                    if (channels.get(i).getId() == channel.getId()) {
                         channels.set(i, channel);
 
-                        if (user.getUserId() == currentUser.getUserId()) {
+                        if (user.getId() == currentUser.getId()) {
                             // self join
                             showInfo("Joined %1.", channel.getName());
                             currentChannel = channel;
-                        } else if (channel.getChannelId() == currentChannel.getChannelId()) {
+                        } else if (channel.getId() == currentChannel.getId()) {
                             // other user joined current channel
                             showInfo("User %1 joined.", currentChannel.getName());
                         }
@@ -152,17 +152,17 @@ public final class ClientCommandProcessor implements OnCommandListener {
                 long channelId = command.getLong("channelId");
                 long userId = command.getLong("userId");
                 for (int i = 0; i < channels.size(); i++) {
-                    if (channels.get(i).getChannelId() == channelId) {
+                    if (channels.get(i).getId() == channelId) {
                         List<User> users = channels.get(i).getUsers();
                         for (Iterator<User> j = users.listIterator(); j.hasNext();) {
-                            if (j.next().getUserId() == userId) {
+                            if (j.next().getId() == userId) {
                                 j.remove();
 
-                                if (userId == currentUser.getUserId()) {
+                                if (userId == currentUser.getId()) {
                                     // self leave
                                     showInfo("Left %1.", channels.get(i).getName());
                                     currentChannel = null;
-                                } else if (channelId == currentChannel.getChannelId()) {
+                                } else if (channelId == currentChannel.getId()) {
                                     // other user left current channel
                                     showInfo("User %1 joined.", currentChannel.getName());
                                 }
@@ -176,9 +176,9 @@ public final class ClientCommandProcessor implements OnCommandListener {
             case CHANNEL_MESSAGE:
                 ChatMessage message = (ChatMessage) command.get("message");
 
-                channelId = message.getChannel().getChannelId();
+                channelId = message.getChannel().getId();
                 for (int i = 0; i < channels.size(); i++) {
-                    if (channels.get(i).getChannelId() == channelId) {
+                    if (channels.get(i).getId() == channelId) {
                         channels.get(i).getMessages().add(message);
                         break;
                     }
@@ -215,18 +215,18 @@ public final class ClientCommandProcessor implements OnCommandListener {
             System.out.println("User is not logged in.");
         } else {
             // print user name
-            System.out.println(makeMessage("USER(%1): %2.", currentUser.getUserId(), currentUser.getNickname()));
+            System.out.println(makeMessage("USER(%1): %2.", currentUser.getId(), currentUser.getNickname()));
             System.out.println(MARKER);
 
             // print contacts
-            List<UserContact> contacts = currentUser.getContacts();
+            List<Contact> contacts = currentUser.getContacts();
             checkNotNull("contacts", contacts);
             if (contacts.size() == 0) {
                 System.out.println("No contacts.");
             } else {
-                for (UserContact contact : contacts) {
+                for (Contact contact : contacts) {
                     checkNotNull("contact.user", contact.getUser());
-                    System.out.println(makeMessage("%1 <%2>", contact.getGivenName(), contact.getUser().getUserId()));
+                    System.out.println(makeMessage("%1 <%2>", contact.getGivenName(), contact.getUser().getId()));
                 }
             }
             System.out.println(MARKER);
@@ -237,13 +237,13 @@ public final class ClientCommandProcessor implements OnCommandListener {
                 checkNotNull("channel.users", channel.getUsers());
                 checkNotNull("channel.messages", channel.getMessages());
                 System.out.println(makeMessage("Channel: %1 <%2>, users: %3, messages: %4.",
-                    channel.getChannelId(), channel.getName(), channel.getUsers().size(), channel.getMessages().size()));
+                    channel.getId(), channel.getName(), channel.getUsers().size(), channel.getMessages().size()));
             }
             System.out.println(MARKER);
 
             if (currentChannel != null) {
                 System.out.println(makeMessage("CHANNEL: %1 <%2>, users: %3, messages: %4.",
-                    currentChannel.getChannelId(), currentChannel.getName(), currentChannel.getUsers().size(),
+                    currentChannel.getId(), currentChannel.getName(), currentChannel.getUsers().size(),
                     currentChannel.getMessages().size()));
                 // print users
                 StringBuilder builder = new StringBuilder("Users: ");

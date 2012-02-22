@@ -1,18 +1,16 @@
 package my.chat.model.user;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import my.chat.model.commons.ChatEntity;
+import my.chat.model.commons.ChatIdEntity;
 import my.chat.parser.FieldDataIgnore;
 import my.chat.parser.ObjectData;
 
@@ -29,12 +27,8 @@ import my.chat.parser.ObjectData;
 @Entity
 @Table(name = "user")
 @ObjectData
-public class User implements ChatEntity {
+public class User extends ChatIdEntity {
     private static final long serialVersionUID = -6808087150087966591L;
-
-    /** The user ID. */
-    @Id
-    private long userId;
 
     /** The user nick name. */
     private String nickname;
@@ -42,11 +36,11 @@ public class User implements ChatEntity {
     /** The credentials. */
     @Embedded
     @FieldDataIgnore
-    private UserCredentials credentials;
+    private Credentials credentials;
 
     /** The list of user's contacts. */
     @Transient
-    private List<UserContact> contacts = new ArrayList<UserContact>();
+    private List<Contact> contacts = new ArrayList<Contact>();
 
     /** List of user's statuses. */
     @Transient
@@ -58,15 +52,7 @@ public class User implements ChatEntity {
 
     public User(String username, String password) {
         nickname = username;
-        credentials = new UserCredentials(username, password);
-    }
-
-    public long getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(long userId) {
-        this.userId = userId;
+        credentials = new Credentials(username, password);
     }
 
     public String getNickname() {
@@ -77,60 +63,19 @@ public class User implements ChatEntity {
         this.nickname = nickname;
     }
 
-    public UserCredentials getUserCredentials() {
+    public Credentials getCredentials() {
         return credentials;
     }
 
-    public void setUserCredentials(UserCredentials credentials) {
+    public void setCredentials(Credentials credentials) {
         this.credentials = credentials;
     }
 
-    public List<UserContact> getContacts() {
+    public List<Contact> getContacts() {
         return contacts;
     }
 
     public List<Status> getStatuses() {
         return statuses;
-    }
-
-    /**
-     * User status, can only exist for User.
-     * <p>
-     * <b>Thread safe:</b> No.
-     * 
-     * @author 7realm
-     */
-    public class Status implements ChatEntity {
-        private static final long serialVersionUID = 1L;
-
-        /** Status content. */
-        private String content;
-
-        /** Status create date. */
-        private Date createDate;
-
-        /**
-         * @param content
-         * @param createDate
-         */
-        public Status(String content, Date createDate) {
-            this.content = content;
-            this.createDate = createDate;
-        }
-
-        /**
-         * @return the content
-         */
-        public String getContent() {
-            return content;
-        }
-
-        /**
-         * @return the createDate
-         */
-        public Date getCreateDate() {
-            return createDate;
-        }
-
     }
 }

@@ -23,7 +23,7 @@ import my.chat.db.PersistanceChatException;
 import my.chat.db.SecurityChatException;
 import my.chat.logging.Log;
 import my.chat.model.user.User;
-import my.chat.model.user.UserCredentials;
+import my.chat.model.user.Credentials;
 
 /**
  * 
@@ -66,11 +66,11 @@ public class FileDatabaseService implements DatabaseService {
 
                     String[] parts = line.split(DATA_SPLITTER);
                     User user = new User();
-                    user.setUserId(Long.parseLong(parts[0]));
+                    user.setId(Long.parseLong(parts[0]));
                     user.setNickname(parts[1]);
-                    user.setUserCredentials(new UserCredentials(parts[2], parts[3]));
+                    user.setCredentials(new Credentials(parts[2], parts[3]));
 
-                    database.put(user.getUserId(), user);
+                    database.put(user.getId(), user);
                 }
             } catch (IOException e) {
                 throw new PersistanceChatException("Failed to read data from file %1.", e, databaseFilename);
@@ -96,7 +96,7 @@ public class FileDatabaseService implements DatabaseService {
         if (user == null) {
             throw new SecurityChatException("User %1 was not found.", username);
         }
-        if (user.getUserCredentials().getPassword().equals(password)) {
+        if (user.getCredentials().getPassword().equals(password)) {
             return user;
         }
         throw new SecurityChatException("Incorrect password for user %1.", username);
@@ -108,8 +108,8 @@ public class FileDatabaseService implements DatabaseService {
         checkString("password", password);
 
         User user = new User(username, password);
-        user.setUserId(lastUserId.incrementAndGet());
-        database.put(user.getUserId(), user);
+        user.setId(lastUserId.incrementAndGet());
+        database.put(user.getId(), user);
 
         save();
 
@@ -120,11 +120,11 @@ public class FileDatabaseService implements DatabaseService {
     public void updateUser(User user) throws PersistanceChatException {
         checkNotNull("user", user);
 
-        if (getUser(user.getUserId()) == null) {
+        if (getUser(user.getId()) == null) {
             throw new PersistanceChatException("User %1 is missinf in database.", user.getNickname());
         }
 
-        database.put(user.getUserId(), user);
+        database.put(user.getId(), user);
 
         save();
     }
@@ -135,9 +135,9 @@ public class FileDatabaseService implements DatabaseService {
             writer = new BufferedWriter(new FileWriter(databaseFile));
             writer.write(lastUserId.get() + EOL);
             for (User user : database.values()) {
-                writer.write(user.getUserId() + DATA_SPLITTER + user.getNickname() + DATA_SPLITTER
-                    + user.getUserCredentials().getUsername() + DATA_SPLITTER
-                    + user.getUserCredentials().getPassword() + EOL);
+                writer.write(user.getId() + DATA_SPLITTER + user.getNickname() + DATA_SPLITTER
+                    + user.getCredentials().getUsername() + DATA_SPLITTER
+                    + user.getCredentials().getPassword() + EOL);
             }
         } catch (IOException e) {
             throw new PersistanceChatException("Failed to write data to file %1.", e, databaseFile.getAbsolutePath());
@@ -148,7 +148,7 @@ public class FileDatabaseService implements DatabaseService {
 
     private User getUser(String username) {
         for (User user : database.values()) {
-            if (user.getUserCredentials().getUsername().equals(username)) {
+            if (user.getCredentials().getUsername().equals(username)) {
                 return user;
             }
         }

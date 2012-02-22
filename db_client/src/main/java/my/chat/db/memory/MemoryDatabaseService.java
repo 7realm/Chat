@@ -38,7 +38,7 @@ public class MemoryDatabaseService implements DatabaseService {
         if (user == null) {
             throw new SecurityChatException("User %1 was not found.", username);
         }
-        if (user.getUserCredentials().getPassword().equals(password)) {
+        if (user.getCredentials().getPassword().equals(password)) {
             return user;
         }
         throw new SecurityChatException("Incorrect password for user %1.", username);
@@ -62,23 +62,23 @@ public class MemoryDatabaseService implements DatabaseService {
     public void updateUser(User user) throws PersistanceChatException {
         checkNotNull("user", user);
 
-        if (getUser(user.getUserId()) == null) {
+        if (getUser(user.getId()) == null) {
             throw new PersistanceChatException("User %1 is missinf in database.", user.getNickname());
         }
 
-        database.put(user.getUserId(), user);
+        database.put(user.getId(), user);
     }
 
     private User doCreateUser(String username, String password) {
         User user = new User(username, password);
-        user.setUserId(lastUserId.incrementAndGet());
-        database.put(user.getUserId(), user);
+        user.setId(lastUserId.incrementAndGet());
+        database.put(user.getId(), user);
         return user;
     }
 
     private User getUser(String username) {
         for (User user : database.values()) {
-            if (user.getUserCredentials().getUsername().equals(username)) {
+            if (user.getCredentials().getUsername().equals(username)) {
                 return user;
             }
         }

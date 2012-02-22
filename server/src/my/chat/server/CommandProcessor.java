@@ -20,14 +20,14 @@ import my.chat.model.Channel.ChannelType;
 import my.chat.model.ChatMessage;
 import my.chat.model.PrivateMessage;
 import my.chat.model.user.User;
-import my.chat.model.user.UserContact;
+import my.chat.model.user.Contact;
+import my.chat.network.NetworkService;
 import my.chat.network.command.Command;
-import my.chat.network.command.CommandContentException;
 import my.chat.network.command.Command.CommandType;
+import my.chat.network.command.CommandContentException;
 import my.chat.network.connection.client.ClientConnection;
 import my.chat.network.connection.client.OnClientCloseListener;
 import my.chat.network.connection.client.OnCommandListener;
-import my.chat.network.NetworkService;
 import my.chat.parser.ParserChatException;
 import my.chat.parser.ParserService;
 
@@ -55,14 +55,14 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     }
 
     public void acceptConnection(ClientConnection connection, User user) throws SecurityChatException {
-        if (onlineUsers.containsKey(user.getUserId())) {
+        if (onlineUsers.containsKey(user.getId())) {
             throw new SecurityChatException("User %1 is already logged in.", user.getNickname());
         }
 
         // associate user with connection
         usersToConnection.put(user, connection);
         connection.setTag(user);
-        onlineUsers.put(user.getUserId(), user);
+        onlineUsers.put(user.getId(), user);
 
         // reassign connection to server
         connection.setOnCloseListener(this);
@@ -83,7 +83,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
     protected Channel createChannel(String name, ChannelType type) {
         Channel channel = new Channel(lastChannelId++, name, type, new Date());
-        channels.put(channel.getChannelId(), channel);
+        channels.put(channel.getId(), channel);
         return channel;
     }
 
@@ -108,8 +108,8 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
 
     protected void removeUserFromChannel(Channel channel, User user) {
         buildCommand(CommandType.CHANNEL_LEAVE)
-            .addData("userId", user.getUserId())
-            .addData("channelId", channel.getChannelId())
+            .addData("userId", user.getId())
+            .addData("channelId", channel.getId())
             .sendToChannel(channel);
 
         channel.getUsers().remove(user);
@@ -121,7 +121,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         User user = (User) connection.getTag();
         usersToConnection.remove(user);
         connection.setTag(null);
-        onlineUsers.remove(user.getUserId());
+        onlineUsers.remove(user.getId());
 
         // remove from all channels
         for (Channel channel : channels.values()) {
@@ -131,7 +131,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
         }
 
         buildCommand(CommandType.USER_EXIT)
-            .addData("userId", user.getUserId())
+            .addData("userId", user.getId())
             .sendToAll();
     }
 
@@ -159,7 +159,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
             case CHANNEL_MESSAGE:
                 ChatMessage chatMessage = (ChatMessage) command.get("message");
                 checkValue(chatMessage.getChannel(), "CHANNEL_MESSAGE.message.channel");
-                long id = chatMessage.getChannel().getChannelId();
+                long id = chatMessage.getChannel().getId();
                 channel = getChannel(id);
 
                 // set server data and add to messages
@@ -190,7 +190,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
                     sendFailure(command, connectionUser, "User is already present in contacts.");
                 } else {
                     // add user to contacts
-                    connectionUser.getContacts().add(new UserContact(contactToAdd.getNickname(), contactToAdd));
+                    connectionUser.getContacts().add(new Contact(contactToAdd.getNickname(), contactToAdd));
 
                     buildCommand(CommandType.USER_ADD_CONTACT)
                         .addData("user", contactToAdd)
@@ -201,9 +201,9 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
                 long userId = command.getLong("userId");
                 User contactToRemove = getUser(userId);
                 if (connectionUser.getContacts().contains(contactToRemove)) {
-                    for (Iterator<UserContact> i = connectionUser.getContacts().iterator(); i.hasNext();) {
-                        UserContact userContact = i.next();
-                        if (userId == userContact.getUser().getUserId()) {
+                    for (Iterator<Contact> i = connectionUser.getContacts().iterator(); i.hasNext();) {
+                        Contact userContact = i.next();
+                        if (userId == userContact.getUser().getId()) {
                             i.remove();
                             break;
                         }
@@ -263,7 +263,7 @@ public final class CommandProcessor implements OnCommandListener, OnClientCloseL
     protected void sendCommandToUser(User user, Command command) {
         ClientConnection connection = usersToConnection.get(user);
         if (connection == null) {
-            Log.warn(this, "User %1 has no connection.", user.getUserId());
+            Log.warn(this, "User %1 has no connection.", user.getId());
         } else {
             sendCommand(connection, command);
         }

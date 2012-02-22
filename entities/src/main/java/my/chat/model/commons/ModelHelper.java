@@ -14,13 +14,13 @@ import java.util.Collection;
  */
 public final class ModelHelper {
 
-    public static void memberExist(ChatEntity entity, String memberName, Object value) {
+    public static void memberExist(ChatIdEntity entity, String memberName, Object value) {
         if (value == null) {
             throw new InvalidMemeberException("Entity '" + entity + "' has missing member '" + memberName + "'.");
         }
     }
     
-    public static void memberAtLeastOne(ChatEntity entity, String memberName, Collection<?> value) {
+    public static void memberAtLeastOne(ChatIdEntity entity, String memberName, Collection<?> value) {
         if (value.size() == 0) {
             throw new InvalidMemeberException("Entity '" + entity + "' has empty member '" + memberName + "'.");
         }

@@ -25,9 +25,8 @@ public class Server {
             // create database service
             databaseService = (DatabaseService) appContext.getBean("databaseService");
 
-            securityService = new SecurityService(databaseService);
-
-            networkService = NetworkService.getInstance();
+            securityService = new SecurityService(databaseService, ParserService.getInstance(), CommandProcessor.getInstance(), NetworkService.getInstance());
+            networkService =  NetworkService.getInstance();
             networkService.setOnConnectionListener(securityService);
         } catch (ClassCastException e) {
             throw new ChatException("Failed to cast created service.", e);

@@ -11,7 +11,7 @@ import my.chat.parser.ObjectData;
  * @author 7realm
  */
 @ObjectData
-public class UserContact implements ChatEntity {
+public class Contact implements ChatEntity {
     private static final long serialVersionUID = -5759858935482127751L;
 
     /** The custom name of contact, only visible to contacts owner. */
@@ -23,7 +23,7 @@ public class UserContact implements ChatEntity {
     /**
      * Empty default constructor.
      */
-    public UserContact() {
+    public Contact() {
         // empty default constructor
     }
 
@@ -31,7 +31,7 @@ public class UserContact implements ChatEntity {
      * @param givenName
      * @param user
      */
-    public UserContact(String givenName, User user) {
+    public Contact(String givenName, User user) {
         this.givenName = givenName;
         this.user = user;
     }

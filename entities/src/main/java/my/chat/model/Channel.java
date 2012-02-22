@@ -1,10 +1,10 @@
 package my.chat.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import my.chat.model.commons.ChatIdEntity;
 import my.chat.model.user.User;
 import my.chat.parser.ObjectData;
 
@@ -16,12 +16,9 @@ import my.chat.parser.ObjectData;
  * @author 7realm
  */
 @ObjectData
-public class Channel implements Serializable {
+public class Channel extends ChatIdEntity {
     /** Serial version UID. */
     private static final long serialVersionUID = 7851489666306197186L;
-
-    /** The unique channel ID. */
-    private long channelId;
 
     /** The channel name. */
     private String name;
@@ -48,17 +45,11 @@ public class Channel implements Serializable {
      * @param createDate
      */
     public Channel(long channelId, String name, ChannelType type, Date createDate) {
-        this.channelId = channelId;
         this.name = name;
         this.type = type;
         this.createDate = createDate;
-    }
 
-    /**
-     * @return the channelId
-     */
-    public long getChannelId() {
-        return channelId;
+        setId(channelId);
     }
 
     /**

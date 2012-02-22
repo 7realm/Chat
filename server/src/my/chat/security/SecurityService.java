@@ -11,14 +11,14 @@ import my.chat.exceptions.ChatIOException;
 import my.chat.exceptions.ExceptionHandler;
 import my.chat.logging.Log;
 import my.chat.model.user.User;
+import my.chat.network.NetworkService;
 import my.chat.network.command.Command;
-import my.chat.network.command.CommandContentException;
 import my.chat.network.command.Command.CommandType;
+import my.chat.network.command.CommandContentException;
 import my.chat.network.connection.client.ClientConnection;
 import my.chat.network.connection.client.OnClientCloseListener;
 import my.chat.network.connection.client.OnCommandListener;
 import my.chat.network.connection.server.OnConnectionListener;
-import my.chat.network.NetworkService;
 import my.chat.parser.ParserChatException;
 import my.chat.parser.ParserService;
 import my.chat.server.CommandProcessor;
@@ -33,9 +33,15 @@ import my.chat.server.CommandProcessor;
  */
 public final class SecurityService implements OnCommandListener, OnConnectionListener, OnClientCloseListener, ExceptionHandler {
     private final DatabaseService databaseService;
+    private final ParserService parserService;
+    private final CommandProcessor commandProcessor;
+    private final NetworkService networkService;
 
-    public SecurityService(DatabaseService databaseService) throws ChatException {
+    public SecurityService(DatabaseService databaseService, ParserService parserService, CommandProcessor commandProcessor, NetworkService networkService) throws ChatException {
         this.databaseService = databaseService;
+        this.parserService = parserService;
+        this.commandProcessor = commandProcessor;
+        this.networkService = networkService;
     }
 
     @Override
@@ -54,7 +60,7 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
         checkNotNull("byte", bytes);
 
         try {
-            Command command = ParserService.getInstance().unmarshall(bytes);
+            Command command = parserService.unmarshall(bytes);
             try {
                 switch (command.getType()) {
                 case CREATE:
@@ -69,8 +75,8 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
                     // notify about create
                     Command success = new Command(CommandType.CREATE)
                         .addItem("user", user);
-                    byte[] successBytes = ParserService.getInstance().marshall(success);
-                    NetworkService.getInstance().sendCommand(connection, successBytes);
+                    byte[] successBytes = parserService.marshall(success);
+                    networkService.sendCommand(connection, successBytes);
                     break;
                 case LOGIN:
                     username = command.getString("username");
@@ -81,8 +87,7 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
 
                     Log.info(this, "%1 is accepted for user %2.", connection, user.getNickname());
 
-                    // server should reassign connection to him
-                    CommandProcessor.getInstance().acceptConnection(connection, user);
+                    commandProcessor.acceptConnection(connection, user);
                     break;
                 default:
                     Log.info(this, "Ignoring not login or create command %1.", command);
@@ -117,8 +122,8 @@ public final class SecurityService implements OnCommandListener, OnConnectionLis
             .addItem("message", message)
             .addItem("commandId", command.getId())
             .addItem("commandType", command.getType());
-        byte[] failBytes = ParserService.getInstance().marshall(failure);
-        NetworkService.getInstance().sendCommand(connection, failBytes);
+        byte[] failBytes = parserService.marshall(failure);
+        networkService.sendCommand(connection, failBytes);
     }
 
     @Override

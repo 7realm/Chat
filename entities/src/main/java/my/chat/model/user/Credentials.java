@@ -2,19 +2,22 @@ package my.chat.model.user;
 
 import javax.persistence.Embeddable;
 
+import my.chat.model.commons.ChatEntity;
+
 /**
  * User credentials that will store login information in database.
  * <p>
  * <b>Thread safe:</b> No.
- *
+ * 
  * @author 7realm
  */
 @Embeddable
-public class UserCredentials {
-    
+public class Credentials implements ChatEntity {
+    private static final long serialVersionUID = 8700004254749555640L;
+
     /** The login username. */
     private String username;
-    
+
     /** The user password. */
     private String password;
 
@@ -22,7 +25,7 @@ public class UserCredentials {
      * @param username
      * @param password
      */
-    public UserCredentials(String username, String password) {
+    public Credentials(String username, String password) {
         super();
         this.username = username;
         this.password = password;
