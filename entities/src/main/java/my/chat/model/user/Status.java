@@ -2,9 +2,9 @@ package my.chat.model.user;
 
 import java.util.Date;
 
-import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.ChatIdEntity;
-import my.chat.model.commons.UpdateChatException;
+import my.chat.model.ChatEntity;
+import my.chat.model.ChatIdEntity;
+import my.chat.model.UpdateChatException;
 
 /**
  * User status, can only exist for User.

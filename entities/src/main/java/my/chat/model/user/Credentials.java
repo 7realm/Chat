@@ -2,8 +2,8 @@ package my.chat.model.user;
 
 import javax.persistence.Embeddable;
 
-import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.UpdateChatException;
+import my.chat.model.ChatEntity;
+import my.chat.model.UpdateChatException;
 
 /**
  * User credentials that will store login information in database.

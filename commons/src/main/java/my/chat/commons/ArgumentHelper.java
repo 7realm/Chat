@@ -47,6 +47,12 @@ public final class ArgumentHelper {
             + " expected.");
     }
 
+    public static void checkState(String fieldName, Object value) {
+        if (value == null) {
+            throw new IllegalStateException("Feild '" + fieldName + "', is not set.");
+        }
+    }
+
     public static void checkInit(String fieldName, Object fieldValue) {
         if (fieldValue == null) {
             throw new ConfigurationChatException("Field '%1' is not set.", fieldName);

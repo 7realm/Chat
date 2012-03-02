@@ -1,6 +1,6 @@
 package my.chat.knowledge;
 
-import my.chat.model.commons.ChatIdEntity;
+import my.chat.model.ChatIdEntity;
 
 public interface KnowledgeService {
 

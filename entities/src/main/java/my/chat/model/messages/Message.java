@@ -1,10 +1,10 @@
-package my.chat.model;
+package my.chat.model.messages;
 
 import java.util.Date;
 
-import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.ChatIdEntity;
-import my.chat.model.commons.UpdateChatException;
+import my.chat.model.ChatEntity;
+import my.chat.model.ChatIdEntity;
+import my.chat.model.UpdateChatException;
 import my.chat.model.user.User;
 
 /**

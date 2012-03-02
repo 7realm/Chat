@@ -4,6 +4,7 @@
 package my.chat.security;
 
 import static my.chat.commons.ArgumentHelper.checkNotNull;
+import my.chat.commands.CommandType;
 import my.chat.db.DatabaseService;
 import my.chat.db.SecurityChatException;
 import my.chat.exceptions.ChatException;
@@ -13,7 +14,6 @@ import my.chat.logging.Log;
 import my.chat.model.user.User;
 import my.chat.network.NetworkService;
 import my.chat.network.command.Command;
-import my.chat.network.command.Command.CommandType;
 import my.chat.network.command.CommandContentException;
 import my.chat.network.connection.client.ClientConnection;
 import my.chat.network.connection.client.OnClientCloseListener;

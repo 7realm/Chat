@@ -1,4 +1,4 @@
-package my.chat.model.commons;
+package my.chat.model;
 
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;

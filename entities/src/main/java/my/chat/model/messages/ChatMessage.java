@@ -1,14 +1,14 @@
 /**
  * 
  */
-package my.chat.model;
+package my.chat.model.messages;
 
 import java.util.Date;
 
-import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.UpdateChatException;
+import my.chat.model.ChatEntity;
+import my.chat.model.UpdateChatException;
+import my.chat.model.channel.Channel;
 import my.chat.model.user.User;
-import my.chat.parser.ObjectData;
 
 /**
  * Public communication message to channel.
@@ -17,7 +17,6 @@ import my.chat.parser.ObjectData;
  * 
  * @author 7realm
  */
-@ObjectData
 public class ChatMessage extends Message {
 	private static final long serialVersionUID = 7949962399207029490L;
 
@@ -58,4 +57,13 @@ public class ChatMessage extends Message {
 	    
 	    setChannel(newMessage.getChannel());
 	}
+	
+	@Override
+    public ChatMessage createTransferObject() throws UpdateChatException {
+        ChatMessage result = (ChatMessage) super.createTransferObject();
+        result.setAuthor(null);
+        result.setChannel(null);
+        result.setReplyTo(null);
+        return result;
+    }
 }

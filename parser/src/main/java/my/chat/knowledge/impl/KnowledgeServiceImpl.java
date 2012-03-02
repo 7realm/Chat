@@ -9,8 +9,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import my.chat.knowledge.KnowledgeChatException;
 import my.chat.knowledge.KnowledgeService;
-import my.chat.model.commons.ChatIdEntity;
-import my.chat.model.commons.UpdateChatException;
+import my.chat.model.ChatIdEntity;
+import my.chat.model.UpdateChatException;
 
 public class KnowledgeServiceImpl implements KnowledgeService {
 

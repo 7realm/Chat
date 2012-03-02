@@ -9,13 +9,13 @@ import java.util.List;
 
 import my.chat.client.console.Instruction.InstructionType;
 import my.chat.client.console.Instruction.Parameter;
+import my.chat.commands.CommandType;
 import my.chat.exceptions.ChatIOException;
-import my.chat.model.Channel;
-import my.chat.model.ChatMessage;
+import my.chat.model.channel.Channel;
+import my.chat.model.messages.ChatMessage;
 import my.chat.model.user.User;
 import my.chat.model.user.Contact;
 import my.chat.network.command.Command;
-import my.chat.network.command.Command.CommandType;
 import my.chat.network.command.CommandContentException;
 import my.chat.network.connection.client.ClientConnection;
 import my.chat.network.connection.client.OnCommandListener;

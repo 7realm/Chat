@@ -10,14 +10,12 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.ChatIdEntity;
-import my.chat.model.commons.UpdateChatException;
-import my.chat.parser.FieldDataIgnore;
-import my.chat.parser.ObjectData;
+import my.chat.model.ChatEntity;
+import my.chat.model.ChatIdEntity;
+import my.chat.model.UpdateChatException;
 
 /**
- * 
+ * Chat user entity.
  * <p>
  * <b>Thread safe:</b> No.
  * 
@@ -28,7 +26,6 @@ import my.chat.parser.ObjectData;
     @NamedQuery(name = "countUsersByName", query = "SELECT COUNT(u) FROM User u WHERE u.nickname = :username") })
 @Entity
 @Table(name = "user")
-@ObjectData
 public class User extends ChatIdEntity {
     private static final long serialVersionUID = -6808087150087966591L;
 
@@ -37,7 +34,6 @@ public class User extends ChatIdEntity {
 
     /** The credentials. */
     @Embedded
-    @FieldDataIgnore
     private Credentials credentials;
 
     /** The list of user's contacts. */
@@ -80,17 +76,27 @@ public class User extends ChatIdEntity {
     public List<Status> getStatuses() {
         return statuses;
     }
-    
+
     @Override
     public void update(ChatEntity newEntity) throws UpdateChatException {
         super.update(newEntity);
-        
-        User newUser = (User) newEntity;
-        
-       setNickname(newUser.getNickname());
-       setCredentials(newUser.getCredentials());
 
-       contacts = newUser.getContacts();
-       statuses = newUser.getStatuses();
+        User newUser = (User) newEntity;
+
+        setNickname(newUser.getNickname());
+        setCredentials(newUser.getCredentials());
+
+        contacts = newUser.getContacts();
+        statuses = newUser.getStatuses();
+    }
+
+    @Override
+    public User createTransferObject() throws UpdateChatException {
+        User result = (User) super.createTransferObject();
+
+        // remove contacts, because they can cause infinitive loop
+        result.getContacts().clear();
+
+        return result;
     }
 }

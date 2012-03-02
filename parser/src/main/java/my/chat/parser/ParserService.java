@@ -30,13 +30,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import my.chat.commands.CommandType;
 import my.chat.commons.Helper;
 import my.chat.exceptions.ConfigurationChatException;
 import my.chat.logging.Log;
 import my.chat.model.user.User;
 import my.chat.network.command.Command;
 import my.chat.network.command.Command.CommandData;
-import my.chat.network.command.Command.CommandType;
 
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -47,7 +47,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
- * 
+ * The parser service implementation.
  * <p>
  * <b>Thread safe:</b> No.
  * 

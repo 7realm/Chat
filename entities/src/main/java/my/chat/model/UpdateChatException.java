@@ -1,4 +1,4 @@
-package my.chat.model.commons;
+package my.chat.model;
 
 import my.chat.exceptions.ChatException;
 

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import my.chat.commands.CommandType;
 import my.chat.network.NetworkConfig;
 
 import static my.chat.commons.ArgumentHelper.checkString;
@@ -136,50 +137,5 @@ public class Command {
         public Object getValue() {
             return value;
         }
-    }
-
-    /**
-     * The enumeration of command types.
-     * <p>
-     * <b>Thread safe:</b> Yes.
-     * 
-     * @author 7realm
-     */
-    public static enum CommandType {
-        /** Command for creating new account. */
-        CREATE,
-        
-        /** For user login. */
-        LOGIN,
-        
-        /** For user enter to chat. */
-        USER_ENTER,
-
-        /** For user exit from chat. */
-        USER_EXIT,
-
-        /** For private message between users. */
-        USER_MESSAGE,
-
-        /** Request to add user to contacts. */
-        USER_ADD_CONTACT,
-
-        /** Request to remove user from contacts. */
-        USER_REMOVE_CONTACT,
-
-        /** This command is sent when user successfully connected. */
-        LOGGED_IN,
-
-        /** User entered channel. */
-        CHANNEL_JOIN,
-
-        /** User left channel. */
-        CHANNEL_LEAVE,
-
-        /** For public message in chat channel. */
-        CHANNEL_MESSAGE,
-
-        /** General failure message. */
-        FAILURE,
     }
 }

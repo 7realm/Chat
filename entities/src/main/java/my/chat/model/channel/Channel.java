@@ -1,14 +1,14 @@
-package my.chat.model;
+package my.chat.model.channel;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.ChatIdEntity;
-import my.chat.model.commons.UpdateChatException;
+import my.chat.model.ChatEntity;
+import my.chat.model.ChatIdEntity;
+import my.chat.model.UpdateChatException;
+import my.chat.model.messages.ChatMessage;
 import my.chat.model.user.User;
-import my.chat.parser.ObjectData;
 
 /**
  * Chat channel, it will contain users and messages.
@@ -17,7 +17,6 @@ import my.chat.parser.ObjectData;
  * 
  * @author 7realm
  */
-@ObjectData
 public class Channel extends ChatIdEntity {
     /** Serial version UID. */
     private static final long serialVersionUID = 7851489666306197186L;
@@ -98,6 +97,19 @@ public class Channel extends ChatIdEntity {
         
         users = newChannel.getUsers();
         messages = newChannel.getMessages();
+    }
+    
+    @Override
+    public Channel createTransferObject() throws UpdateChatException {
+        Channel result = (Channel) super.createTransferObject();
+        
+        // make all users transferable
+        makeTransferableList(result.getUsers());
+        
+        // make all messages transferable
+        makeTransferableList(result.getMessages());
+        
+        return result;
     }
 
     /**

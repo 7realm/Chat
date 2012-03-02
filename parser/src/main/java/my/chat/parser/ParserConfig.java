@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import my.chat.model.PrivateMessage;
+import my.chat.commands.CommandType;
+import my.chat.model.messages.PrivateMessage;
 import my.chat.model.user.User;
-import my.chat.network.command.Command.CommandType;
 
 public final class ParserConfig {
     public static final Map<CommandType, Map<String, Class<?>>> RULES = new HashMap<CommandType, Map<String, Class<?>>>();

@@ -1,9 +1,8 @@
 package my.chat.model.user;
 
-import my.chat.model.commons.ChatEntity;
-import my.chat.model.commons.ChatIdEntity;
-import my.chat.model.commons.UpdateChatException;
-import my.chat.parser.ObjectData;
+import my.chat.model.ChatEntity;
+import my.chat.model.ChatIdEntity;
+import my.chat.model.UpdateChatException;
 
 /**
  * Defines user's chat contact.
@@ -12,7 +11,6 @@ import my.chat.parser.ObjectData;
  * 
  * @author 7realm
  */
-@ObjectData
 public class Contact extends ChatIdEntity {
     private static final long serialVersionUID = -5759858935482127751L;
 
